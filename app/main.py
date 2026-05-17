@@ -78,6 +78,11 @@ async def warranty(request: Request):
     return render(request, "warranty.html", "warranty")
 
 
+@app.get("/terms", response_class=HTMLResponse)
+async def terms(request: Request):
+    return render(request, "terms.html", "terms")
+
+
 @app.get("/contacts", response_class=HTMLResponse)
 async def contacts(request: Request):
     return render(request, "contacts.html", "contacts")
