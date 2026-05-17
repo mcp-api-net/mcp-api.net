@@ -1,77 +1,80 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="py-5">
-  <div class="container">
-    <h1 class="fw-bold">{{ t.contacts_title }}</h1>
-    <p class="lead text-secondary">{{ t.contacts_subtitle }}</p>
+    <section class="py-5">
+        <div class="container">
+            <h1 class="fw-bold">{{ t.contacts_title }}</h1>
+            <p class="lead text-secondary">{{ t.contacts_subtitle }}</p>
 
-    <div class="row g-4 mt-2">
-      <div class="col-md-5">
-        <ul class="list-group">
-          <li class="list-group-item">
-            <strong>{{ t.contacts_email }}:</strong>
-            <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
-          </li>
-          <li class="list-group-item">
-            <strong>{{ t.contacts_phone }}:</strong>
-            <a href="tel:{{ contacts.phone }}">{{ contacts.phone }}</a>
-          </li>
-          <li class="list-group-item">
-            <strong>{{ t.contacts_github }}:</strong>
-            <a href="{{ contacts.github }}" target="_blank" rel="noopener">{{ contacts.github }}</a>
-          </li>
-          <li class="list-group-item">
-            <strong>{{ t.contacts_linkedin }}:</strong>
-            <a href="{{ contacts.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
-          </li>
-          <li class="list-group-item">
-            <strong>{{ t.contacts_website }}:</strong>
-            <a href="{{ contacts.website }}" target="_blank" rel="noopener">{{ contacts.website }}</a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="col-md-7">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h4 class="card-title">{{ t.contacts_form_title }}</h4>
-            <form action="https://formspree.io/f/xldwaevw" method="POST" class="pt-3">
-              <fieldset>
-                <div class="mb-3">
-                  <label for="email" class="form-label">
-                    {{ t.contacts_form_email }} <span class="text-danger" aria-label="{{ t.contacts_form_required }}">*</span>
-                  </label>
-                  <input type="email" name="email" id="email" class="form-control"
-                         placeholder="{{ t.contacts_form_email_ph }}" required>
+            <div class="row g-4 mt-2">
+                <div class="col-md-5">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>{{ t.contacts_email }}:</strong>
+                            <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{{ t.contacts_phone }}:</strong>
+                            <a href="tel:{{ contacts.phone }}">{{ contacts.phone }}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{{ t.contacts_github }}:</strong>
+                            <a href="{{ contacts.github }}" target="_blank" rel="noopener">{{ contacts.github }}</a>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{{ t.contacts_linkedin }}:</strong>
+                            <a href="{{ contacts.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>{{ t.contacts_website }}:</strong>
+                            <a href="{{ contacts.website }}" target="_blank" rel="noopener">{{ contacts.website }}</a>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="mb-3">
-                  <label for="usecase" class="form-label">
-                    {{ t.contacts_form_usecase }} <span class="text-danger" aria-label="{{ t.contacts_form_required }}">*</span>
-                  </label>
-                  <input type="text" name="usecase" id="usecase" class="form-control"
-                         placeholder="{{ t.contacts_form_usecase_ph }}" required>
-                </div>
+                <div class="col-md-7">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h4 class="card-title">{{ t.contacts_form_title }}</h4>
+                            <form action="https://formspree.io/f/xldwaevw" method="POST" class="pt-3">
+                                <fieldset>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">
+                                            {{ t.contacts_form_email }} <span class="text-danger"
+                                                                              aria-label="{{ t.contacts_form_required }}">*</span>
+                                        </label>
+                                        <input type="email" name="email" id="email" class="form-control"
+                                               placeholder="{{ t.contacts_form_email_ph }}" required>
+                                    </div>
 
-                <div class="mb-4">
-                  <label for="message" class="form-label">{{ t.contacts_form_message }}</label>
-                  <textarea name="message" id="message" class="form-control" rows="4"
-                            placeholder="{{ t.contacts_form_message_ph }}"></textarea>
-                </div>
+                                    <div class="mb-3">
+                                        <label for="usecase" class="form-label">
+                                            {{ t.contacts_form_usecase }} <span class="text-danger"
+                                                                                aria-label="{{ t.contacts_form_required }}">*</span>
+                                        </label>
+                                        <input type="text" name="usecase" id="usecase" class="form-control"
+                                               placeholder="{{ t.contacts_form_usecase_ph }}" required>
+                                    </div>
 
-                <input type="text" name="_gotcha" style="display:none">
+                                    <div class="mb-4">
+                                        <label for="message" class="form-label">{{ t.contacts_form_message }}</label>
+                                        <textarea name="message" id="message" class="form-control" rows="4"
+                                                  placeholder="{{ t.contacts_form_message_ph }}"></textarea>
+                                    </div>
 
-                <div class="d-grid">
-                  <button type="submit" class="btn btn-primary btn-lg">{{ t.contacts_form_submit }}</button>
+                                    <input type="text" name="_gotcha" style="display:none">
+
+                                    <div class="d-grid">
+                                        <button type="submit"
+                                                class="btn btn-primary btn-lg">{{ t.contacts_form_submit }}</button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-              </fieldset>
-            </form>
-          </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-{% include "_legal.html" %}
+    {% include "_legal.html" %}
 {% endblock %}

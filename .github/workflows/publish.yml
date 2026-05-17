@@ -2,7 +2,7 @@ name: Build and publish image to GHCR
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     tags: ["v*.*.*"]
   workflow_dispatch:
 
@@ -40,7 +40,7 @@ jobs:
             type=ref,event=branch
             type=sha,prefix=sha-
             type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -53,7 +53,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Make package public
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/master'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
