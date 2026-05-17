@@ -17,6 +17,7 @@ CONTACTS = {
     "github": "https://github.com/SergeySetti",
     "linkedin": "https://www.linkedin.com/in/serhii-kirichko-agentic-ai-engineer/",
     "website": "https://setti.ai/",
+    "phone": "+380997946400",
 }
 
 app = FastAPI(title="mcp-api.net")

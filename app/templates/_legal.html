@@ -1,0 +1,21 @@
+<section class="py-4 border-top mt-5">
+  <div class="container" style="max-width: 820px;">
+    <h2 class="h4 fw-bold">{{ t.legal_title }}</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-4 text-secondary">{{ t.legal_owner_label }}</dt>
+      <dd class="col-sm-8">{{ t.legal_owner_name }}</dd>
+
+      <dt class="col-sm-4 text-secondary">{{ t.legal_tax_label }}</dt>
+      <dd class="col-sm-8">{{ t.legal_tax_value }}</dd>
+
+      <dt class="col-sm-4 text-secondary">{{ t.legal_address_label }}</dt>
+      <dd class="col-sm-8">{{ t.legal_address_value }}</dd>
+
+      <dt class="col-sm-4 text-secondary">{{ t.contacts_email }}</dt>
+      <dd class="col-sm-8"><a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a></dd>
+
+      <dt class="col-sm-4 text-secondary">{{ t.contacts_phone }}</dt>
+      <dd class="col-sm-8"><a href="tel:{{ contacts.phone }}">{{ contacts.phone }}</a></dd>
+    </dl>
+  </div>
+</section>

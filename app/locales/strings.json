@@ -66,6 +66,7 @@
     "contacts_title": "Contacts",
     "contacts_subtitle": "Let's talk about your API and how to make it MCP-compatible.",
     "contacts_email": "Email",
+    "contacts_phone": "Phone",
     "contacts_github": "GitHub",
     "contacts_linkedin": "LinkedIn",
     "contacts_website": "Website",
@@ -111,7 +112,16 @@
     "terms_s13_title": "13. Governing Law",
     "terms_s13_text": "These Terms are governed by the laws of Ukraine, without regard to its conflict-of-laws rules. Any dispute will be resolved in the competent courts located in Ukraine, unless otherwise agreed in writing.",
     "terms_s14_title": "14. Contact",
-    "terms_s14_text": "Questions about these Terms can be sent to serhii.kirichko@gmail.com."
+    "terms_s14_text": "Questions about these Terms can be sent to serhii.kirichko@gmail.com.",
+    "legal_title": "Merchant details",
+    "legal_owner_label": "Owner",
+    "legal_owner_name": "Private entrepreneur Kirichko Serhii",
+    "legal_tax_label": "Tax ID (РНОКПП)",
+    "legal_tax_value": "3015801933",
+    "legal_address_label": "Registered address",
+    "legal_address_value": "Liudviha Svobody Ave. 6, apt. 158, Kharkiv 61204, Ukraine",
+    "delivery_title": "Service delivery",
+    "delivery_text": "All services are digital and delivered electronically. Once the bank confirms your payment, the engagement starts within one business day and Managed MCP SSE endpoints are provisioned within 24 hours. There is no physical shipment."
   },
   "uk": {
     "lang_name": "Українська",
@@ -180,6 +190,7 @@
     "contacts_title": "Контакти",
     "contacts_subtitle": "Поговорімо про ваш API і як зробити його MCP-сумісним.",
     "contacts_email": "Email",
+    "contacts_phone": "Телефон",
     "contacts_github": "GitHub",
     "contacts_linkedin": "LinkedIn",
     "contacts_website": "Сайт",
@@ -225,6 +236,15 @@
     "terms_s13_title": "13. Застосовне право",
     "terms_s13_text": "Ці Умови регулюються правом України без урахування колізійних норм. Будь-які спори вирішуються у компетентних судах України, якщо інше не погоджено письмово.",
     "terms_s14_title": "14. Контакти",
-    "terms_s14_text": "Питання щодо цих Умов надсилайте на serhii.kirichko@gmail.com."
+    "terms_s14_text": "Питання щодо цих Умов надсилайте на serhii.kirichko@gmail.com.",
+    "legal_title": "Реквізити продавця",
+    "legal_owner_label": "Власник",
+    "legal_owner_name": "ФОП Кірічко Сергій",
+    "legal_tax_label": "РНОКПП (ІПН)",
+    "legal_tax_value": "3015801933",
+    "legal_address_label": "Адреса реєстрації",
+    "legal_address_value": "пр-т Людвіга Свободи, 6, кв. 158, м. Харків, 61204, Україна",
+    "delivery_title": "Умови надання послуг",
+    "delivery_text": "Усі послуги є цифровими та надаються електронно. Після підтвердження оплати банком співпраця починається протягом одного робочого дня, а ендпоінти Managed MCP SSE вводяться в експлуатацію протягом 24 годин. Фізична доставка відсутня."
   }
 }

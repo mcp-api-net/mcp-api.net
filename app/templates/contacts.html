@@ -13,6 +13,10 @@
             <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
           </li>
           <li class="list-group-item">
+            <strong>{{ t.contacts_phone }}:</strong>
+            <a href="tel:{{ contacts.phone }}">{{ contacts.phone }}</a>
+          </li>
+          <li class="list-group-item">
             <strong>{{ t.contacts_github }}:</strong>
             <a href="{{ contacts.github }}" target="_blank" rel="noopener">{{ contacts.github }}</a>
           </li>
@@ -68,4 +72,6 @@
     </div>
   </div>
 </section>
+
+{% include "_legal.html" %}
 {% endblock %}
