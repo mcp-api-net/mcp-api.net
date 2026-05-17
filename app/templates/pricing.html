@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <h1 class="fw-bold">{{ t.pricing_title }}</h1>
+    <p class="lead text-secondary">{{ t.pricing_subtitle }}</p>
+
+    <div class="row g-4 mt-2">
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">{{ t.pricing_project_title }}</h3>
+            <p class="display-6 fw-bold mb-0">{{ t.pricing_project_price }}</p>
+            <p class="text-secondary">{{ t.pricing_project_unit }}</p>
+            <ul class="list-unstyled">
+              <li>✓ {{ t.pricing_project_f1 }}</li>
+              <li>✓ {{ t.pricing_project_f2 }}</li>
+              <li>✓ {{ t.pricing_project_f3 }}</li>
+              <li>✓ {{ t.pricing_project_f4 }}</li>
+            </ul>
+            <a href="/contacts" class="btn btn-primary">{{ t.pricing_project_cta }}</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-primary">
+          <div class="card-body">
+            <h3 class="card-title">{{ t.pricing_monthly_title }}</h3>
+            <p class="display-6 fw-bold mb-0">{{ t.pricing_monthly_price }}</p>
+            <p class="text-secondary">{{ t.pricing_monthly_unit }}</p>
+            <ul class="list-unstyled">
+              <li>✓ {{ t.pricing_monthly_f1 }}</li>
+              <li>✓ {{ t.pricing_monthly_f2 }}</li>
+              <li>✓ {{ t.pricing_monthly_f3 }}</li>
+              <li>✓ {{ t.pricing_monthly_f4 }}</li>
+            </ul>
+            <a href="/contacts" class="btn btn-primary">{{ t.pricing_monthly_cta }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-secondary mt-4">
+      {{ t.pricing_payment_note }}
+    </div>
+
+    <h2 class="fw-bold mt-5">{{ t.pricing_flow_title }}</h2>
+    <ol class="fs-5 mt-3">
+      <li>{{ t.pricing_flow_1 }}</li>
+      <li>{{ t.pricing_flow_2 }}</li>
+      <li>{{ t.pricing_flow_3 }}</li>
+      <li>{{ t.pricing_flow_4 }}</li>
+    </ol>
+  </div>
+</section>
+{% endblock %}

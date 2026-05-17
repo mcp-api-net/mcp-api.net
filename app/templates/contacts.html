@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <h1 class="fw-bold">{{ t.contacts_title }}</h1>
+    <p class="lead text-secondary">{{ t.contacts_subtitle }}</p>
+
+    <div class="row g-4 mt-2">
+      <div class="col-md-5">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <strong>{{ t.contacts_email }}:</strong>
+            <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+          </li>
+          <li class="list-group-item">
+            <strong>{{ t.contacts_github }}:</strong>
+            <a href="{{ contacts.github }}" target="_blank" rel="noopener">{{ contacts.github }}</a>
+          </li>
+          <li class="list-group-item">
+            <strong>{{ t.contacts_linkedin }}:</strong>
+            <a href="{{ contacts.linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
+          </li>
+          <li class="list-group-item">
+            <strong>{{ t.contacts_website }}:</strong>
+            <a href="{{ contacts.website }}" target="_blank" rel="noopener">{{ contacts.website }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">{{ t.contacts_form_title }}</h4>
+            {% if sent %}
+              <div class="alert alert-success">{{ t.contacts_form_thanks }}</div>
+            {% endif %}
+            <form method="post" action="/contacts">
+              <div class="mb-3">
+                <label class="form-label">{{ t.contacts_form_name }}</label>
+                <input name="name" type="text" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ t.contacts_form_email }}</label>
+                <input name="email" type="email" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ t.contacts_form_message }}</label>
+                <textarea name="message" rows="4" class="form-control" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">{{ t.contacts_form_submit }}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

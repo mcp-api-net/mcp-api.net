@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 820px;">
+    <h1 class="fw-bold">{{ t.warranty_title }}</h1>
+    <p class="lead text-secondary">{{ t.warranty_intro }}</p>
+
+    <h3 class="mt-4">{{ t.warranty_p1_title }}</h3>
+    <p>{{ t.warranty_p1_text }}</p>
+
+    <h3 class="mt-4">{{ t.warranty_p2_title }}</h3>
+    <p>{{ t.warranty_p2_text }}</p>
+
+    <h3 class="mt-4">{{ t.warranty_p3_title }}</h3>
+    <p>{{ t.warranty_p3_text }}</p>
+
+    <div class="alert alert-info mt-4">
+      {{ t.warranty_contact }}
+    </div>
+  </div>
+</section>
+{% endblock %}

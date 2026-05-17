@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <h1 class="fw-bold">{{ t.services_title }}</h1>
+    <p class="lead text-secondary">{{ t.services_subtitle }}</p>
+    <div class="row g-4 mt-2">
+      {% for key in ['consult','integrate','support','serve','tech'] %}
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title">{{ t['service_' ~ key ~ '_title'] }}</h4>
+            <p class="card-text text-secondary">{{ t['service_' ~ key ~ '_text'] }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
