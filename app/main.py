@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 BASE_DIR = Path(__file__).resolve().parent
 SUPPORTED_LANGS = ("en", "uk")
-DEFAULT_LANG = "en"
+DEFAULT_LANG = "uk"
 
 with open(BASE_DIR / "locales" / "strings.json", "r", encoding="utf-8") as f:
     STRINGS = json.load(f)
