@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 640px;">
+    <h1 class="fw-bold">{{ t.pay_test_title }}</h1>
+    <p class="lead text-secondary">{{ t.pay_test_subtitle }}</p>
+
+    <div class="card shadow-sm mt-4">
+      <div class="card-body text-center">
+        <p class="display-5 fw-bold mb-0">${{ amount }} <span class="text-secondary fs-5">{{ currency }}</span></p>
+        <p class="text-secondary">{{ t.pay_test_caption }}</p>
+
+        {% if liqpay_missing %}
+          <div class="alert alert-warning mt-3 mb-0">
+            {{ t.pay_test_not_configured }}
+          </div>
+        {% else %}
+          {% if sandbox %}
+            <div class="alert alert-info mt-3">{{ t.pay_test_sandbox }}</div>
+          {% endif %}
+          <form method="POST" action="{{ checkout_url }}" accept-charset="utf-8" class="mt-3">
+            <input type="hidden" name="data" value="{{ data }}">
+            <input type="hidden" name="signature" value="{{ signature }}">
+            <button type="submit" class="btn btn-success btn-lg">
+              {{ t.pay_test_button }} — ${{ amount }} {{ currency }}
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <p class="text-secondary small mt-3">{{ t.pay_test_note }}</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,9 +1,15 @@
 import json
+import logging
+import uuid
 from pathlib import Path
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from app import liqpay
+
+log = logging.getLogger("mcp-api.net")
 
 BASE_DIR = Path(__file__).resolve().parent
 SUPPORTED_LANGS = ("en", "uk")
@@ -19,6 +25,8 @@ CONTACTS = {
     "website": "https://setti.ai/",
     "phone": "+380997946400",
 }
+
+LIQPAY = liqpay.load_config()
 
 app = FastAPI(title="mcp-api.net")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
@@ -143,6 +151,75 @@ async def bank_payment_webhook(request: Request):
             "status": status,
         }
     )
+
+
+@app.get("/pay/test", response_class=HTMLResponse)
+async def pay_test(request: Request):
+    if not LIQPAY.configured:
+        return render(
+            request,
+            "pay_test.html",
+            "pay_test",
+            {"liqpay_missing": True, "amount": "0.10", "currency": "USD"},
+        )
+
+    data, signature = liqpay.build_checkout(
+        LIQPAY,
+        amount=0.10,
+        currency="USD",
+        description="mcp-api.net test payment",
+        order_id=f"test-{uuid.uuid4().hex[:12]}",
+        language=ctx(request, "pay_test")["lang"],
+    )
+    return render(
+        request,
+        "pay_test.html",
+        "pay_test",
+        {
+            "liqpay_missing": False,
+            "amount": "0.10",
+            "currency": "USD",
+            "checkout_url": liqpay.LIQPAY_CHECKOUT_URL,
+            "data": data,
+            "signature": signature,
+            "sandbox": LIQPAY.is_sandbox,
+        },
+    )
+
+
+@app.get("/payment/success", response_class=HTMLResponse)
+async def payment_success(request: Request):
+    return render(request, "payment_result.html", "payment", {"success": True})
+
+
+@app.get("/payment/fail", response_class=HTMLResponse)
+async def payment_fail(request: Request):
+    return render(request, "payment_result.html", "payment", {"success": False})
+
+
+@app.post("/webhooks/liqpay")
+async def liqpay_callback(
+    data: str = Form(...),
+    signature: str = Form(...),
+):
+    """LiqPay server callback. Verifies signature and logs the payload."""
+    if not LIQPAY.configured:
+        raise HTTPException(status_code=503, detail="LiqPay not configured")
+
+    if not liqpay.verify(data, signature, LIQPAY.private_key):
+        log.warning("LiqPay callback signature mismatch")
+        raise HTTPException(status_code=400, detail="invalid signature")
+
+    payload = liqpay.decode_callback(data)
+    log.info(
+        "LiqPay callback: order_id=%s status=%s amount=%s %s",
+        payload.get("order_id"),
+        payload.get("status"),
+        payload.get("amount"),
+        payload.get("currency"),
+    )
+    # TODO: persist payment, mark invoice paid, send receipt, etc.
+    return JSONResponse({"received": True})
 
 
 @app.get("/healthz")
