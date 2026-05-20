@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 820px;">
+    {% if lang == 'uk' %}
+      <h1 class="fw-bold">Договори з клієнтами</h1>
+      <p class="lead text-secondary">Чинні приклади договорів і шаблон, який ми використовуємо у роботі з клієнтами.</p>
+
+      <div class="list-group mt-4">
+        <a href="/agreements/project-sample" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">Приклад №1 — Проєктна робота (фіксований обсяг)</h5>
+            <small class="text-secondary">PDF / web</small>
+          </div>
+          <p class="mb-1 text-secondary">Договір на одноразове проєктне впровадження MCP для існуючого API.</p>
+        </a>
+        <a href="/agreements/sse-sample" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">Приклад №2 — Підписка Managed MCP SSE</h5>
+            <small class="text-secondary">PDF / web</small>
+          </div>
+          <p class="mb-1 text-secondary">Щомісячна підписка на керований MCP-сервер через SSE.</p>
+        </a>
+        <a href="/agreements/template" class="list-group-item list-group-item-action">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">Шаблон договору (порожній)</h5>
+            <small class="text-secondary">PDF / web</small>
+          </div>
+          <p class="mb-1 text-secondary">Базовий шаблон, який ми адаптуємо під кожного клієнта.</p>
+        </a>
+      </div>
+
+      <p class="text-secondary small mt-4">
+        Усі договори підписуються електронно (КЕП / Diia.Signature) або кваліфікованим електронним підписом сторін.
+        Офіційна мова договору — українська.
+      </p>
+    {% else %}
+      <h1 class="fw-bold">Client agreements</h1>
+      <p class="lead text-secondary">Working samples of the agreements we sign with clients, plus our template.</p>
+
+      <div class="list-group mt-4">
+        <a href="/agreements/project-sample" class="list-group-item list-group-item-action">
+          <h5 class="mb-1">Sample #1 — Per-project engagement (fixed scope)</h5>
+          <p class="mb-1 text-secondary">One-off MCP integration project for an existing API.</p>
+        </a>
+        <a href="/agreements/sse-sample" class="list-group-item list-group-item-action">
+          <h5 class="mb-1">Sample #2 — Managed MCP SSE subscription</h5>
+          <p class="mb-1 text-secondary">Monthly subscription to a managed MCP server over SSE.</p>
+        </a>
+        <a href="/agreements/template" class="list-group-item list-group-item-action">
+          <h5 class="mb-1">Agreement template (blank)</h5>
+          <p class="mb-1 text-secondary">The base template we adapt per client.</p>
+        </a>
+      </div>
+
+      <p class="text-secondary small mt-4">
+        All agreements are signed electronically (Ukrainian KEP / Diia.Signature) or with a qualified electronic signature of both parties.
+        The official language of the agreement is Ukrainian; an English translation is provided for reference.
+      </p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

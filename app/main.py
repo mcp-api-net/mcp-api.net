@@ -92,6 +92,26 @@ async def terms(request: Request):
     return render(request, "terms.html", "terms")
 
 
+@app.get("/agreements", response_class=HTMLResponse)
+async def agreements(request: Request):
+    return render(request, "agreements.html", "agreements")
+
+
+@app.get("/agreements/project-sample", response_class=HTMLResponse)
+async def agreement_project(request: Request):
+    return render(request, "agreement_project.html", "agreements")
+
+
+@app.get("/agreements/sse-sample", response_class=HTMLResponse)
+async def agreement_sse(request: Request):
+    return render(request, "agreement_sse.html", "agreements")
+
+
+@app.get("/agreements/template", response_class=HTMLResponse)
+async def agreement_template(request: Request):
+    return render(request, "agreement_template.html", "agreements")
+
+
 @app.get("/contacts", response_class=HTMLResponse)
 async def contacts(request: Request):
     return render(request, "contacts.html", "contacts")
