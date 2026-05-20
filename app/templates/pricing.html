@@ -6,7 +6,7 @@
     <p class="lead text-secondary">{{ t.pricing_subtitle }}</p>
 
     <div class="row g-4 mt-2">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="card h-100 shadow-sm">
           <div class="card-body">
             <h3 class="card-title">{{ t.pricing_project_title }}</h3>
@@ -22,7 +22,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="card h-100 shadow-sm border-primary">
           <div class="card-body">
             <h3 class="card-title">{{ t.pricing_monthly_title }}</h3>
@@ -35,6 +35,23 @@
               <li>✓ {{ t.pricing_monthly_f4 }}</li>
             </ul>
             <a href="/contacts" class="btn btn-primary">{{ t.pricing_monthly_cta }}</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">{{ t.pricing_hourly_title }}</h3>
+            <p class="display-6 fw-bold mb-0">{{ t.pricing_hourly_price }}</p>
+            <p class="text-secondary">{{ t.pricing_hourly_unit }}</p>
+            <ul class="list-unstyled">
+              <li>✓ {{ t.pricing_hourly_f1 }}</li>
+              <li>✓ {{ t.pricing_hourly_f2 }}</li>
+              <li>✓ {{ t.pricing_hourly_f3 }}</li>
+              <li>✓ {{ t.pricing_hourly_f4 }}</li>
+            </ul>
+            <a href="/contacts" class="btn btn-primary">{{ t.pricing_hourly_cta }}</a>
+            <p class="text-secondary small mt-2 mb-0">{{ t.pricing_hourly_note }}</p>
           </div>
         </div>
       </div>
