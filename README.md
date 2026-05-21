@@ -34,12 +34,13 @@ Open http://127.0.0.1:8000
 - `/contacts`
 - Language switch: `/set-lang/en` or `/set-lang/uk`
 
-## Bank payment webhook (boilerplate)
+## Monobank Acquiring
 
-`POST /webhooks/bank/payment-approved`
+Pay button uses Monobank's [invoice/create](https://monobank.ua/api-docs/acquiring/methods/ia/post--api--merchant--invoice--create) API.
 
-Expects JSON `{ invoice_id, amount, currency, payment_id, status }`.
-TODOs marked in `app/main.py`: signature verification, idempotency, invoice matching, side effects.
+- Set `MONOBANK_API_KEY` (X-Token from the acquiring terminal).
+- `GET /pay/test` renders the test-payment page; `POST /pay/test` creates an invoice and 303-redirects to Monobank's `pageUrl`.
+- `POST /webhooks/monobank` receives invoice status callbacks. TODOs in `app/main.py`: verify `X-Sign` (ECDSA), idempotency, invoice matching, side effects.
 
 ## Docker
 

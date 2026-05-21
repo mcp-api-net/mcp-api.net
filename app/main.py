@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import liqpay
+from app import monobank
 
 log = logging.getLogger("mcp-api.net")
 
@@ -26,7 +26,9 @@ CONTACTS = {
     "phone": "+380997946400",
 }
 
-LIQPAY = liqpay.load_config()
+MONOBANK = monobank.load_config()
+TEST_AMOUNT_MINOR = 10  # 0.10 USD
+TEST_CURRENCY = "USD"
 
 app = FastAPI(title="mcp-api.net")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
@@ -138,73 +140,44 @@ async def set_lang(lang: str, request: Request):
     return response
 
 
-@app.post("/webhooks/bank/payment-approved")
-async def bank_payment_webhook(request: Request):
-    """
-    Boilerplate webhook for bank payment-approval callbacks.
-
-    Real integration TODO:
-      - Verify the bank's signature header (HMAC / RSA).
-      - Idempotency: dedupe by payment_id.
-      - Match invoice_id to an internal order/subscription.
-      - Mark order as paid; activate subscription; send receipt email.
-    """
-    try:
-        payload = await request.json()
-    except Exception:
-        payload = {}
-
-    invoice_id = payload.get("invoice_id")
-    amount = payload.get("amount")
-    currency = payload.get("currency")
-    payment_id = payload.get("payment_id")
-    status = payload.get("status", "approved")
-
-    # TODO: signature verification, persistence, side effects.
-    return JSONResponse(
-        {
-            "received": True,
-            "invoice_id": invoice_id,
-            "amount": amount,
-            "currency": currency,
-            "payment_id": payment_id,
-            "status": status,
-        }
-    )
-
-
 @app.get("/pay/test", response_class=HTMLResponse)
 async def pay_test(request: Request):
-    if not LIQPAY.configured:
-        return render(
-            request,
-            "pay_test.html",
-            "pay_test",
-            {"liqpay_missing": True, "amount": "0.10", "currency": "USD"},
-        )
-
-    data, signature = liqpay.build_checkout(
-        LIQPAY,
-        amount=0.10,
-        currency="USD",
-        description="mcp-api.net test payment",
-        order_id=f"test-{uuid.uuid4().hex[:12]}",
-        language=ctx(request, "pay_test")["lang"],
-    )
     return render(
         request,
         "pay_test.html",
         "pay_test",
         {
-            "liqpay_missing": False,
+            "monobank_missing": not MONOBANK.configured,
             "amount": "0.10",
-            "currency": "USD",
-            "checkout_url": liqpay.LIQPAY_CHECKOUT_URL,
-            "data": data,
-            "signature": signature,
-            "sandbox": LIQPAY.is_sandbox,
+            "currency": TEST_CURRENCY,
         },
     )
+
+
+@app.post("/pay/test")
+async def pay_test_start(request: Request):
+    if not MONOBANK.configured:
+        raise HTTPException(status_code=503, detail="Monobank not configured")
+
+    base = str(request.base_url).rstrip("/")
+    try:
+        invoice = monobank.create_invoice(
+            MONOBANK,
+            amount_minor=TEST_AMOUNT_MINOR,
+            currency=TEST_CURRENCY,
+            reference=f"test-{uuid.uuid4().hex[:12]}",
+            destination="mcp-api.net test payment",
+            redirect_url=MONOBANK.redirect_url or f"{base}/payment/success",
+            webhook_url=MONOBANK.webhook_url or f"{base}/webhooks/monobank",
+        )
+    except Exception as e:
+        log.exception("Monobank invoice create failed")
+        raise HTTPException(status_code=502, detail=str(e))
+
+    page_url = invoice.get("pageUrl")
+    if not page_url:
+        raise HTTPException(status_code=502, detail="Monobank response missing pageUrl")
+    return RedirectResponse(url=page_url, status_code=303)
 
 
 @app.get("/payment/success", response_class=HTMLResponse)
@@ -217,28 +190,22 @@ async def payment_fail(request: Request):
     return render(request, "payment_result.html", "payment", {"success": False})
 
 
-@app.post("/webhooks/liqpay")
-async def liqpay_callback(
-    data: str = Form(...),
-    signature: str = Form(...),
-):
-    """LiqPay server callback. Verifies signature and logs the payload."""
-    if not LIQPAY.configured:
-        raise HTTPException(status_code=503, detail="LiqPay not configured")
-
-    if not liqpay.verify(data, signature, LIQPAY.private_key):
-        log.warning("LiqPay callback signature mismatch")
-        raise HTTPException(status_code=400, detail="invalid signature")
-
-    payload = liqpay.decode_callback(data)
+@app.post("/webhooks/monobank")
+async def monobank_webhook(request: Request):
+    """Monobank invoice status webhook. Logs the payload."""
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = {}
+    # TODO: verify X-Sign (ECDSA over body using /api/merchant/pubkey),
+    # persist invoice, mark order paid, send receipt.
     log.info(
-        "LiqPay callback: order_id=%s status=%s amount=%s %s",
-        payload.get("order_id"),
+        "Monobank webhook: invoiceId=%s status=%s amount=%s ccy=%s",
+        payload.get("invoiceId"),
         payload.get("status"),
         payload.get("amount"),
-        payload.get("currency"),
+        payload.get("ccy"),
     )
-    # TODO: persist payment, mark invoice paid, send receipt, etc.
     return JSONResponse({"received": True})
 
 
