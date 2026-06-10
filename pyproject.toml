@@ -43,11 +43,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"app/templates" = "app/templates"
-"app/static" = "app/static"
-"app/locales" = "app/locales"
-
 [tool.ruff]
 line-length = 160
 target-version = "py313"
