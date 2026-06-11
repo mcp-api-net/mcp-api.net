@@ -1,30 +1,301 @@
+/* ===========================================================================
+   Theme: "Sketchbook" — parchment paper, ink, warm orange/amber accents.
+   Inspired by hand-drawn whiteboard sketches.
+   =========================================================================== */
+
 :root {
-  --brand: #0d6efd;
+  /* Core palette pulled from the sketch */
+  --paper:        #f4ead2;   /* parchment background            */
+  --paper-deep:   #efe1c2;   /* slightly darker paper section   */
+  --paper-card:   #fbf5e6;   /* card / panel surface            */
+  --ink:          #1c1a17;   /* near-black hand-drawn ink        */
+  --ink-soft:     #5c554a;   /* muted ink for secondary text     */
+  --accent:       #e8821e;   /* warm orange (arrows, highlights) */
+  --accent-deep:  #cf6f12;   /* hover / pressed orange           */
+  --amber:        #f6b24a;   /* highlighter / marker fill        */
+  --line:         #d8c8a4;   /* hairline borders on paper        */
+
+  --brand: var(--accent);
+
+  /* Map onto Bootstrap so every component follows the theme globally */
+  --bs-primary:        #e8821e;
+  --bs-primary-rgb:    232, 130, 30;
+  --bs-body-bg:        var(--paper);
+  --bs-body-color:     var(--ink);
+  --bs-border-color:   var(--line);
+  --bs-link-color:     var(--accent-deep);
+  --bs-link-hover-color: var(--ink);
+  --bs-emphasis-color: var(--ink);
 }
 
+/* --- Base ----------------------------------------------------------------- */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: var(--paper);
+  /* subtle paper grain so the parchment reads as drawn-on, not flat */
+  background-image:
+    radial-gradient(rgba(120, 95, 50, .05) 1px, transparent 1px),
+    radial-gradient(rgba(120, 95, 50, .04) 1px, transparent 1px);
+  background-size: 22px 22px, 22px 22px;
+  background-position: 0 0, 11px 11px;
+  color: var(--ink);
 }
 
-main {
-  display: block;
+main { display: block; }
+
+h1, h2, h3, .navbar-brand, .display-4 { color: var(--ink); }
+h1, h2, h3 { font-weight: 800; letter-spacing: -.01em; }
+
+/* Clean Inter headline for readability */
+.display-4, .hero-title {
+  font-weight: 800;
+  letter-spacing: -.02em;
 }
 
+a { color: var(--accent-deep); }
+a:hover { color: var(--ink); }
+
+.text-secondary { color: var(--ink-soft) !important; }
+.text-info { color: var(--accent) !important; }
+
+/* --- Dark sections become warm "ink" instead of cold black ---------------- */
+.bg-dark,
+.navbar-dark.bg-dark,
+footer.bg-dark {
+  background-color: var(--ink) !important;
+  color: var(--paper) !important;
+}
+
+/* Brick texture lives ONLY on the hero block, and scrolls with the page */
+.hero-brick {
+  position: relative;
+  isolation: isolate;
+  background-color: #2a0f08 !important;             /* fallback under the image */
+  background-image: url("../img/bg.jpg") !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* no background-attachment: fixed -> scrolls normally */
+}
+
+/* Dark scrim so text stays legible over the busy brick */
+.hero-brick::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg,
+    rgba(18, 7, 3, .58) 0%,
+    rgba(18, 7, 3, .38) 45%,
+    rgba(18, 7, 3, .70) 100%);
+}
+.hero-brick > .container { position: relative; z-index: 1; }
+
+/* Hero typography over the brick */
+.hero-kicker {
+  font-weight: 600;
+  font-size: .85rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  color: var(--amber);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .55);
+}
+.hero-brick h1 {
+  color: #fbf3de !important;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, .5);
+}
+.hero-brick .lead,
+.hero-brick .text-secondary {
+  color: rgba(251, 243, 222, .85) !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .45);
+}
+.bg-black { background-color: #14120f !important; }
+
+.bg-light {
+  background-color: var(--paper-deep) !important;
+  color: var(--ink);
+}
+
+/* Navbar */
+.navbar-dark .navbar-brand { color: var(--paper) !important; }
+.navbar-dark .nav-link { color: rgba(244, 234, 210, .72) !important; }
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link.active { color: var(--amber) !important; }
+
+/* --- Buttons -------------------------------------------------------------- */
+.btn-primary {
+  --bs-btn-bg: var(--accent);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-bg: var(--accent-deep);
+  --bs-btn-hover-border-color: var(--accent-deep);
+  --bs-btn-active-bg: var(--accent-deep);
+  --bs-btn-active-border-color: var(--accent-deep);
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+  font-weight: 600;
+}
+
+.btn-outline-light {
+  --bs-btn-color: var(--paper);
+  --bs-btn-border-color: rgba(244, 234, 210, .6);
+  --bs-btn-hover-bg: var(--amber);
+  --bs-btn-hover-border-color: var(--amber);
+  --bs-btn-hover-color: var(--ink);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--accent-deep);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-bg: var(--accent);
+  --bs-btn-hover-border-color: var(--accent);
+  --bs-btn-hover-color: #fff;
+}
+
+.btn { border-radius: .6rem; }
+
+/* --- Cards / panels ------------------------------------------------------- */
 .card {
-  border: 1px solid rgba(0,0,0,.075);
-  transition: transform .15s ease, box-shadow .15s ease;
+  background-color: var(--paper-card);
+  border: 1.5px solid var(--line);
+  border-radius: .75rem;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 .6rem 1.4rem rgba(120, 80, 20, .14) !important;
 }
 
+.card-title { color: var(--ink); font-weight: 700; }
+
+/* "Highlighter" marker effect — reuse the sketch's amber callout boxes.
+   Add class="marker" to any inline element to get the hand-drawn highlight. */
+.marker {
+  background: linear-gradient(120deg, transparent 2%, var(--amber) 2%, var(--amber) 98%, transparent 98%);
+  padding: .05em .25em;
+  border-radius: .15em;
+  color: var(--ink);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Accent rule that mimics a felt-tip underline */
+.accent-underline {
+  position: relative;
+  display: inline-block;
+}
+.accent-underline::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -.15em;
+  height: .18em;
+  background: var(--accent);
+  border-radius: 50%;
+  transform: rotate(-.4deg);
+}
+
+/* --- Hero "Living Hub" emblem --------------------------------------------- */
+.hub-emblem {
+  position: relative;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .45));
+}
+.hub-emblem svg { width: 100%; height: auto; display: block; }
+
+/* slow pulse on the hexagon + glow */
+.hub-emblem .hub-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hubPulse 4.5s ease-in-out infinite;
+}
+@keyframes hubPulse {
+  0%, 100% { opacity: .92; }
+  50%      { opacity: 1; filter: brightness(1.08); }
+}
+
+/* nodes blink in sequence to suggest live traffic */
+.hub-emblem .nodes circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nodeBlink 3s ease-in-out infinite;
+}
+.hub-emblem .nodes circle:nth-child(1) { animation-delay: 0s; }
+.hub-emblem .nodes circle:nth-child(2) { animation-delay: .5s; }
+.hub-emblem .nodes circle:nth-child(3) { animation-delay: 1s; }
+.hub-emblem .nodes circle:nth-child(4) { animation-delay: 1.5s; }
+.hub-emblem .nodes circle:nth-child(5) { animation-delay: 2s; }
+.hub-emblem .nodes circle:nth-child(6) { animation-delay: 2.5s; }
+@keyframes nodeBlink {
+  0%, 100% { opacity: .45; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.35); }
+}
+
+/* spokes draw a flowing dash toward the hub */
+.hub-emblem .spokes line {
+  stroke-dasharray: 6 10;
+  animation: spokeFlow 1.6s linear infinite;
+}
+@keyframes spokeFlow { to { stroke-dashoffset: -16; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-emblem .hub-ring,
+  .hub-emblem .nodes circle,
+  .hub-emblem .spokes line { animation: none; }
+}
+
+/* --- Call-to-action panel (services page) --------------------------------- */
+.cta-panel {
+  position: relative;
+  overflow: hidden;
+  color: #fff6e8;
+  background:
+    radial-gradient(120% 140% at 0% 0%, #ffb454 0%, transparent 45%),
+    linear-gradient(135deg, #e8821e 0%, #cf6f12 55%, #a85309 100%);
+  box-shadow: 0 1.2rem 2.4rem rgba(120, 70, 15, .28);
+}
+/* faint hexagon-echo texture in the corner */
+.cta-panel::after {
+  content: "";
+  position: absolute;
+  right: -60px; bottom: -80px;
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(255, 255, 255, .14) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cta-panel h2 { color: #fff; }
+.cta-panel .lead { color: rgba(255, 246, 232, .92); position: relative; z-index: 1; }
+.cta-panel .btn { position: relative; z-index: 1; }
+
+/* primary action: cream button pops on the orange field */
+.btn-cta {
+  --bs-btn-bg: #fff6e8;
+  --bs-btn-border-color: #fff6e8;
+  --bs-btn-color: var(--accent-deep);
+  --bs-btn-hover-bg: #fff;
+  --bs-btn-hover-border-color: #fff;
+  --bs-btn-hover-color: #a85309;
+  --bs-btn-active-bg: #fff;
+  font-weight: 700;
+}
+.cta-panel .btn-outline-light {
+  --bs-btn-hover-bg: rgba(255, 255, 255, .16);
+  --bs-btn-hover-border-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+/* --- Code blocks --------------------------------------------------------- */
 pre code {
   font-size: .95rem;
   line-height: 1.45;
 }
+.bg-black pre code { color: var(--amber) !important; }
 
-footer a {
-  color: inherit;
-}
+/* --- Footer --------------------------------------------------------------- */
+footer a { color: var(--amber); }
+footer .text-secondary { color: rgba(244, 234, 210, .6) !important; }
+
+/* --- Misc ----------------------------------------------------------------- */
+hr { border-color: var(--line); opacity: .8; }
+.border, .border-secondary-subtle { border-color: var(--line) !important; }
+::selection { background: var(--amber); color: var(--ink); }

@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="bg-dark text-light py-5">
+<section class="bg-dark text-light py-5 hero-brick">
   <div class="container py-5">
     <div class="row align-items-center g-4">
       <div class="col-lg-7">
+        <p class="hero-kicker mb-2">{{ t.hero_kicker }}</p>
         <h1 class="display-4 fw-bold">{{ t.hero_title }}</h1>
         <p class="lead text-secondary">{{ t.hero_subtitle }}</p>
         <div class="mt-4 d-flex gap-2 flex-wrap">
@@ -12,12 +13,64 @@
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="p-4 rounded bg-black border border-secondary-subtle">
-          <pre class="text-info mb-0"><code>POST /mcp/sse
-Content-Type: text/event-stream
+        <div class="hub-emblem">
+          <svg viewBox="0 0 520 520" role="img" aria-label="Agentic AI hub orchestrating connected tools and APIs" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="hubFill" cx="50%" cy="42%" r="65%">
+                <stop offset="0%"  stop-color="#ffb454"/>
+                <stop offset="55%" stop-color="#e8821e"/>
+                <stop offset="100%" stop-color="#b8560c"/>
+              </radialGradient>
+              <filter id="hubGlow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="6" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <marker id="hubArrow" viewBox="0 0 10 10" refX="7" refY="5"
+                      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M1 1 L8 5 L1 9" fill="none" stroke="#fff5e6"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
 
-→ tools/list
-← { "tools": [ "your.api.*" ] }</code></pre>
+            <!-- circuit spokes + outer nodes -->
+            <g class="spokes" fill="none" stroke="#f6b24a" stroke-width="2" stroke-linecap="round">
+              <line x1="355" y1="260"   x2="455" y2="260"/>
+              <line x1="307.5" y1="342.3" x2="357" y2="428"/>
+              <line x1="212.5" y1="342.3" x2="163" y2="428"/>
+              <line x1="165" y1="260"   x2="65"  y2="260"/>
+              <line x1="212.5" y1="177.7" x2="163" y2="92"/>
+              <line x1="307.5" y1="177.7" x2="357" y2="92"/>
+            </g>
+
+            <g class="nodes" fill="#f6b24a">
+              <circle cx="455" cy="260" r="7"/>
+              <circle cx="357" cy="428" r="7"/>
+              <circle cx="163" cy="428" r="7"/>
+              <circle cx="65"  cy="260" r="7"/>
+              <circle cx="163" cy="92"  r="7"/>
+              <circle cx="357" cy="92"  r="7"/>
+            </g>
+
+            <!-- the hexagon hub -->
+            <g filter="url(#hubGlow)">
+              <polygon class="hub-ring" points="355,260 307.5,342.3 212.5,342.3 165,260 212.5,177.7 307.5,177.7"
+                       fill="url(#hubFill)" stroke="#ffcf8a" stroke-width="3"/>
+              <polygon points="318,260 289,310 231,310 202,260 231,210 289,210"
+                       fill="none" stroke="#3a1606" stroke-width="2.5" opacity="0.55"/>
+            </g>
+
+            <!-- agent core: 6-fold radial burst orchestrating tools outward -->
+            <g stroke="#fff5e6" stroke-width="3.4" stroke-linecap="round" fill="none"
+               opacity="0.95" marker-end="url(#hubArrow)">
+              <line x1="278"   y1="260"   x2="306"   y2="260"/>
+              <line x1="269"   y1="275.6" x2="283"   y2="299.8"/>
+              <line x1="251"   y1="275.6" x2="237"   y2="299.8"/>
+              <line x1="242"   y1="260"   x2="214"   y2="260"/>
+              <line x1="251"   y1="244.4" x2="237"   y2="220.2"/>
+              <line x1="269"   y1="244.4" x2="283"   y2="220.2"/>
+            </g>
+            <circle cx="260" cy="260" r="9" fill="#fff5e6" opacity="0.95"/>
+          </svg>
         </div>
       </div>
     </div>
