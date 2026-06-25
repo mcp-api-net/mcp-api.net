@@ -29,6 +29,8 @@
                                         href="/warranty">{{ t.nav_warranty }}</a></li>
                 <li class="nav-item"><a class="nav-link {% if page=='terms' %}active{% endif %}"
                                         href="/terms">{{ t.nav_terms }}</a></li>
+                <li class="nav-item"><a class="nav-link {% if page=='privacy' %}active{% endif %}"
+                                        href="/privacy">{{ t.nav_privacy }}</a></li>
                 <li class="nav-item"><a class="nav-link {% if page=='agreements' %}active{% endif %}"
                                         href="/agreements">{{ t.nav_agreements }}</a></li>
                 <li class="nav-item"><a class="nav-link {% if page=='contacts' %}active{% endif %}"
@@ -48,7 +50,12 @@
         <div>
             <strong>{{ t.brand }}</strong> — <span class="text-secondary">{{ t.footer_tagline }}</span>
         </div>
-        <div class="text-secondary small">
+        <div class="text-secondary small text-center text-md-end">
+            <div class="mb-1">
+                <a class="link-light text-decoration-none" href="/privacy">{{ t.nav_privacy }}</a>
+                <span class="mx-1">·</span>
+                <a class="link-light text-decoration-none" href="/data-deletion">{{ t.deletion_title }}</a>
+            </div>
             &copy; <span id="year"></span> {{ t.brand }}. {{ t.footer_rights }}
         </div>
     </div>

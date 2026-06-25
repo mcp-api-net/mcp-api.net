@@ -94,6 +94,16 @@ async def terms(request: Request):
     return render(request, "terms.html", "terms")
 
 
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy(request: Request):
+    return render(request, "privacy.html", "privacy")
+
+
+@app.get("/data-deletion", response_class=HTMLResponse)
+async def data_deletion(request: Request):
+    return render(request, "data_deletion.html", "data_deletion")
+
+
 @app.get("/agreements", response_class=HTMLResponse)
 async def agreements(request: Request):
     return render(request, "agreements.html", "agreements")

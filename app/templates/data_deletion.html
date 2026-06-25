@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 820px;">
+    <h1 class="fw-bold">{{ t.deletion_title }}</h1>
+    <p class="text-secondary">{{ t.privacy_updated }}</p>
+    <p class="lead">{{ t.deletion_intro }}</p>
+
+    <h3 class="mt-4">{{ t.deletion_self_title }}</h3>
+    <p>{{ t.deletion_self_text }}</p>
+    <ol>
+      <li>{{ t.deletion_self_step1 }}</li>
+      <li>{{ t.deletion_self_step2 }}</li>
+      <li>{{ t.deletion_self_step3 }}</li>
+    </ol>
+
+    <h3 class="mt-4">{{ t.deletion_request_title }}</h3>
+    <p>{{ t.deletion_request_text }}</p>
+
+    <h3 class="mt-4">{{ t.deletion_scope_title }}</h3>
+    <p>{{ t.deletion_scope_text }}</p>
+
+    <h3 class="mt-4">{{ t.deletion_contact_title }}</h3>
+    <p>{{ t.deletion_contact_text }}</p>
+  </div>
+</section>
+{% endblock %}
