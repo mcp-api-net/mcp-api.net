@@ -1,0 +1,28 @@
+services:
+    web:
+        image: ghcr.io/mcp-api-net/mcp-api.net:latest
+        container_name: mcp-api-net-web
+        restart: unless-stopped
+        pull_policy: always
+        # Fronted by the shared `proxy` stack (Caddy) over the external caddy_net
+        # network; reachable there as mcp-api-net-web:8000. Not published on the
+        # host.
+        expose:
+            - "8000"
+        env_file:
+            - .env
+        environment:
+            - MONOBANK_API_KEY=${MONOBANK_API_KEY:?MONOBANK_API_KEY must be set}
+            - MONOBANK_REDIRECT_URL=${MONOBANK_REDIRECT_URL:-}
+            - MONOBANK_WEBHOOK_URL=${MONOBANK_WEBHOOK_URL:-}
+        networks:
+            - caddy_net
+        healthcheck:
+            test: [ "CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost', 8000))" ]
+            interval: 30s
+            timeout: 5s
+            retries: 5
+
+networks:
+    caddy_net:
+        external: true

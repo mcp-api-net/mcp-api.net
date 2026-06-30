@@ -1,0 +1,12 @@
+# Caddy site block for mcp-api.net — owned by this repo.
+#
+# The shared proxy stack (~/stage/proxy/ on the server) mounts this repo's
+# deploy/caddy/ directory and `import`s the fragment, so routing for
+# mcp-api.net lives here rather than in the central proxy config.
+#
+# `mcp-api-net-web` is reachable by container name on the external caddy_net
+# network (see docker-compose.yml).
+
+mcp-api.net, www.mcp-api.net {
+	reverse_proxy mcp-api-net-web:8000
+}
