@@ -49,6 +49,26 @@ docker build -t mcp-api-net .
 docker run --rm -p 8000:8000 mcp-api-net
 ```
 
+## Deployment
+
+Runs standalone on `85.62.195.176` (SSH alias `recall-server`), fronted by a
+shared Caddy reverse proxy that also serves other projects on that box
+(e.g. `recall.select`). `docker-compose.yml` runs the published GHCR image on
+the external `caddy_net` network; `deploy/caddy/mcp-api.net.caddy` is the site
+block this repo owns, which the shared proxy mounts and imports — routing
+config lives here, not in the central proxy repo.
+
+Deploy with:
+
+```powershell
+./deploy/deploy.sh
+```
+
+Works from a dev machine (pushes, then runs the deploy over SSH) or directly
+on the server (deploys in place). The server-side `.env` (`MONOBANK_API_KEY`,
+`MONOBANK_REDIRECT_URL`, `MONOBANK_WEBHOOK_URL`) is not committed — see
+`.env.example`.
+
 ## Publishing to GHCR
 
 On every push to `main` (and on tags `v*.*.*`), [.github/workflows/publish.yml](.github/workflows/publish.yml) builds a multi-tag Docker image and pushes it to:
