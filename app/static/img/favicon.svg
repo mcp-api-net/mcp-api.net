@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd27a"/>
+      <stop offset="55%" stop-color="#ff9d1f"/>
+      <stop offset="100%" stop-color="#e6720a"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="#2a120a"/>
+  <polygon points="32,8 52,20 52,44 32,56 12,44 12,20"
+           fill="url(#glow)" stroke="#ffe3a8" stroke-width="1.5"/>
+  <g stroke="#fff8ec" stroke-width="2.6" stroke-linecap="round" fill="none">
+    <path d="M32 20 L32 28 M28 24 L32 20 L36 24"/>
+    <path d="M32 44 L32 36 M28 40 L32 44 L36 40"/>
+    <path d="M20 32 L28 32 M24 28 L20 32 L24 36"/>
+    <path d="M44 32 L36 32 M40 28 L44 32 L40 36"/>
+  </g>
+  <circle cx="32" cy="32" r="3.4" fill="#fff8ec"/>
+</svg>
