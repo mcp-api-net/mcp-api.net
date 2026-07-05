@@ -191,8 +191,11 @@ async def pay_test_start(request: Request):
     return RedirectResponse(url=page_url, status_code=303)
 
 
-def _parse_uah_amount(raw: str) -> int | None:
-    """Parse a UAH amount string into kopiykas; None if invalid."""
+INVOICE_CURRENCIES = tuple(monobank.CCY)
+
+
+def _parse_amount_minor(raw: str) -> int | None:
+    """Parse an amount string into minor units (kopiykas / cents); None if invalid."""
     try:
         value = Decimal(raw.strip().replace(",", "."))
     except (InvalidOperation, AttributeError):
@@ -208,7 +211,11 @@ async def pay_invoice(request: Request):
         request,
         "pay_invoice.html",
         "pay_invoice",
-        {"monobank_missing": not MONOBANK.configured},
+        {
+            "monobank_missing": not MONOBANK.configured,
+            "currencies": INVOICE_CURRENCIES,
+            "currency": "UAH",
+        },
     )
 
 
@@ -217,22 +224,29 @@ async def pay_invoice_create(
     request: Request,
     description: str = Form(...),
     amount: str = Form(...),
+    currency: str = Form("UAH"),
 ):
+    currency = currency.strip().upper()
     extra: dict = {
         "monobank_missing": not MONOBANK.configured,
         "description": description,
         "amount": amount,
+        "currencies": INVOICE_CURRENCIES,
+        "currency": currency if currency in INVOICE_CURRENCIES else "UAH",
     }
     if not MONOBANK.configured:
         return render(request, "pay_invoice.html", "pay_invoice", extra)
 
     description = description.strip()
-    amount_minor = _parse_uah_amount(amount)
+    amount_minor = _parse_amount_minor(amount)
     if not description:
         extra["error"] = "desc"
         return render(request, "pay_invoice.html", "pay_invoice", extra)
     if amount_minor is None:
         extra["error"] = "amount"
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+    if currency not in INVOICE_CURRENCIES:
+        extra["error"] = "currency"
         return render(request, "pay_invoice.html", "pay_invoice", extra)
 
     base = str(request.base_url).rstrip("/")
@@ -240,7 +254,7 @@ async def pay_invoice_create(
         invoice = monobank.create_invoice(
             MONOBANK,
             amount_minor=amount_minor,
-            currency="UAH",
+            currency=currency,
             reference=f"inv-{uuid.uuid4().hex[:12]}",
             destination=description,
             redirect_url=MONOBANK.redirect_url or f"{base}/payment/success",
@@ -262,6 +276,7 @@ async def pay_invoice_create(
             "invoice_url": page_url,
             "invoice_id": invoice.get("invoiceId", ""),
             "invoice_amount": f"{amount_minor / 100:.2f}",
+            "invoice_currency": currency,
         }
     )
     return render(request, "pay_invoice.html", "pay_invoice", extra)

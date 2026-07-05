@@ -45,18 +45,22 @@ Pay button uses Monobank's [invoice/create](https://monobank.ua/api-docs/acquiri
 ### Invoice creation (`/pay/invoice`)
 
 Internal tool for billing clients: open `/pay/invoice`, enter a service
-description and an amount in UAH, and the server creates a Monobank invoice
-and shows the resulting payment link (`pageUrl`). Copy the link and send it to
-the client — they pay online on Monobank's hosted page, and the settlement
-status arrives on `POST /webhooks/monobank` like any other invoice.
+description, an amount and a currency (UAH, USD or EUR), and the server
+creates a Monobank invoice and shows the resulting payment link (`pageUrl`).
+Copy the link and send it to the client — they pay online on Monobank's
+hosted page, and the settlement status arrives on `POST /webhooks/monobank`
+like any other invoice.
 
 - The page is intentionally **not linked** from anywhere on the site — reach
   it by URL only.
 - There is also **no authentication** on it: anyone who knows the URL can
   create (unpaid) invoices against the terminal. Add auth before sharing the
   URL beyond yourself.
-- Amounts accept up to 2 decimal places (kopiykas); the description becomes
-  the invoice's `destination` shown to the payer.
+- Amounts accept up to 2 decimal places (kopiykas / cents); the description
+  becomes the invoice's `destination` shown to the payer.
+- Non-UAH invoices (USD/EUR) are created only if multicurrency is enabled on
+  the Monobank acquiring terminal — otherwise `invoice/create` returns an
+  error, which the page surfaces as an alert.
 
 ## Docker
 

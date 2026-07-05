@@ -13,7 +13,7 @@
       <div class="card shadow-sm mt-4">
         <div class="card-body">
           <h2 class="h5 fw-bold text-success">{{ t.invoice_ready_title }}</h2>
-          <p class="mb-1">{{ description }} — <strong>{{ invoice_amount }} ₴</strong></p>
+          <p class="mb-1">{{ description }} — <strong>{{ invoice_amount }} {{ invoice_currency }}</strong></p>
           <p class="text-secondary small mb-3">{{ t.invoice_id_label }}: {{ invoice_id }}</p>
 
           <div class="input-group mb-3">
@@ -51,6 +51,8 @@
         <div class="alert alert-danger mt-3">{{ t.invoice_error_desc }}</div>
       {% elif error == "amount" %}
         <div class="alert alert-danger mt-3">{{ t.invoice_error_amount }}</div>
+      {% elif error == "currency" %}
+        <div class="alert alert-danger mt-3">{{ t.invoice_error_currency }}</div>
       {% elif error == "api" %}
         <div class="alert alert-danger mt-3">{{ t.invoice_error_api }}</div>
       {% endif %}
@@ -71,8 +73,13 @@
                 <input type="number" class="form-control" id="amount" name="amount"
                        min="0.01" step="0.01" required inputmode="decimal"
                        value="{{ amount or '' }}">
-                <span class="input-group-text">₴</span>
+                <select class="form-select" name="currency" aria-label="Currency" style="max-width: 110px;">
+                  {% for c in currencies %}
+                    <option value="{{ c }}" {% if currency == c %}selected{% endif %}>{{ c }}</option>
+                  {% endfor %}
+                </select>
               </div>
+              <div class="form-text">{{ t.invoice_currency_note }}</div>
             </div>
             <button type="submit" class="btn btn-primary">{{ t.invoice_create_button }}</button>
           </form>
