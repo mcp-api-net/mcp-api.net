@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -64,7 +65,7 @@ def render(request: Request, template: str, page: str, extra: dict | None = None
     data = ctx(request, page)
     if extra:
         data.update(extra)
-    response = templates.TemplateResponse(template, data)
+    response = templates.TemplateResponse(request, template, data)
     response.set_cookie("lang", data["lang"], max_age=60 * 60 * 24 * 365, samesite="lax")
     return response
 
@@ -188,6 +189,82 @@ async def pay_test_start(request: Request):
     if not page_url:
         raise HTTPException(status_code=502, detail="Monobank response missing pageUrl")
     return RedirectResponse(url=page_url, status_code=303)
+
+
+def _parse_uah_amount(raw: str) -> int | None:
+    """Parse a UAH amount string into kopiykas; None if invalid."""
+    try:
+        value = Decimal(raw.strip().replace(",", "."))
+    except (InvalidOperation, AttributeError):
+        return None
+    if value <= 0 or value != value.quantize(Decimal("0.01")):
+        return None
+    return int(value * 100)
+
+
+@app.get("/pay/invoice", response_class=HTMLResponse)
+async def pay_invoice(request: Request):
+    return render(
+        request,
+        "pay_invoice.html",
+        "pay_invoice",
+        {"monobank_missing": not MONOBANK.configured},
+    )
+
+
+@app.post("/pay/invoice", response_class=HTMLResponse)
+async def pay_invoice_create(
+    request: Request,
+    description: str = Form(...),
+    amount: str = Form(...),
+):
+    extra: dict = {
+        "monobank_missing": not MONOBANK.configured,
+        "description": description,
+        "amount": amount,
+    }
+    if not MONOBANK.configured:
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+
+    description = description.strip()
+    amount_minor = _parse_uah_amount(amount)
+    if not description:
+        extra["error"] = "desc"
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+    if amount_minor is None:
+        extra["error"] = "amount"
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+
+    base = str(request.base_url).rstrip("/")
+    try:
+        invoice = monobank.create_invoice(
+            MONOBANK,
+            amount_minor=amount_minor,
+            currency="UAH",
+            reference=f"inv-{uuid.uuid4().hex[:12]}",
+            destination=description,
+            redirect_url=MONOBANK.redirect_url or f"{base}/payment/success",
+            webhook_url=MONOBANK.webhook_url or f"{base}/webhooks/monobank",
+        )
+    except Exception:
+        log.exception("Monobank invoice create failed")
+        extra["error"] = "api"
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+
+    page_url = invoice.get("pageUrl")
+    if not page_url:
+        log.error("Monobank response missing pageUrl: %s", invoice)
+        extra["error"] = "api"
+        return render(request, "pay_invoice.html", "pay_invoice", extra)
+
+    extra.update(
+        {
+            "invoice_url": page_url,
+            "invoice_id": invoice.get("invoiceId", ""),
+            "invoice_amount": f"{amount_minor / 100:.2f}",
+        }
+    )
+    return render(request, "pay_invoice.html", "pay_invoice", extra)
 
 
 @app.get("/payment/success", response_class=HTMLResponse)

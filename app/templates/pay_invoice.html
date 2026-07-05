@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 640px;">
+    <h1 class="fw-bold">{{ t.invoice_title }}</h1>
+    <p class="lead text-secondary">{{ t.invoice_subtitle }}</p>
+
+    {% if monobank_missing %}
+      <div class="alert alert-warning mt-3">
+        {{ t.pay_test_not_configured }}
+      </div>
+    {% elif invoice_url %}
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h2 class="h5 fw-bold text-success">{{ t.invoice_ready_title }}</h2>
+          <p class="mb-1">{{ description }} — <strong>{{ invoice_amount }} ₴</strong></p>
+          <p class="text-secondary small mb-3">{{ t.invoice_id_label }}: {{ invoice_id }}</p>
+
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id="invoice-url" value="{{ invoice_url }}" readonly>
+            <button type="button" class="btn btn-outline-primary" id="copy-invoice-url"
+                    data-copied-label="{{ t.invoice_copied }}">
+              {{ t.invoice_copy }}
+            </button>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-success" href="{{ invoice_url }}" target="_blank" rel="noopener">
+              {{ t.invoice_open }}
+            </a>
+            <a class="btn btn-outline-secondary" href="/pay/invoice">{{ t.invoice_new }}</a>
+          </div>
+
+          <p class="text-secondary small mt-3 mb-0">{{ t.invoice_ready_hint }}</p>
+        </div>
+      </div>
+      <script>
+        document.getElementById("copy-invoice-url").addEventListener("click", function () {
+          var input = document.getElementById("invoice-url");
+          input.select();
+          navigator.clipboard.writeText(input.value).then(function () {
+            var btn = document.getElementById("copy-invoice-url");
+            var original = btn.textContent;
+            btn.textContent = btn.dataset.copiedLabel;
+            setTimeout(function () { btn.textContent = original; }, 2000);
+          });
+        });
+      </script>
+    {% else %}
+      {% if error == "desc" %}
+        <div class="alert alert-danger mt-3">{{ t.invoice_error_desc }}</div>
+      {% elif error == "amount" %}
+        <div class="alert alert-danger mt-3">{{ t.invoice_error_amount }}</div>
+      {% elif error == "api" %}
+        <div class="alert alert-danger mt-3">{{ t.invoice_error_api }}</div>
+      {% endif %}
+
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <form method="POST" action="/pay/invoice">
+            <div class="mb-3">
+              <label for="description" class="form-label">{{ t.invoice_desc_label }}</label>
+              <input type="text" class="form-control" id="description" name="description"
+                     maxlength="280" required
+                     placeholder="{{ t.invoice_desc_placeholder }}"
+                     value="{{ description or '' }}">
+            </div>
+            <div class="mb-3">
+              <label for="amount" class="form-label">{{ t.invoice_amount_label }}</label>
+              <div class="input-group">
+                <input type="number" class="form-control" id="amount" name="amount"
+                       min="0.01" step="0.01" required inputmode="decimal"
+                       value="{{ amount or '' }}">
+                <span class="input-group-text">₴</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ t.invoice_create_button }}</button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

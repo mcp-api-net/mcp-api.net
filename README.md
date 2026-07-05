@@ -42,6 +42,22 @@ Pay button uses Monobank's [invoice/create](https://monobank.ua/api-docs/acquiri
 - `GET /pay/test` renders the test-payment page; `POST /pay/test` creates an invoice and 303-redirects to Monobank's `pageUrl`.
 - `POST /webhooks/monobank` receives invoice status callbacks. TODOs in `app/main.py`: verify `X-Sign` (ECDSA), idempotency, invoice matching, side effects.
 
+### Invoice creation (`/pay/invoice`)
+
+Internal tool for billing clients: open `/pay/invoice`, enter a service
+description and an amount in UAH, and the server creates a Monobank invoice
+and shows the resulting payment link (`pageUrl`). Copy the link and send it to
+the client — they pay online on Monobank's hosted page, and the settlement
+status arrives on `POST /webhooks/monobank` like any other invoice.
+
+- The page is intentionally **not linked** from anywhere on the site — reach
+  it by URL only.
+- There is also **no authentication** on it: anyone who knows the URL can
+  create (unpaid) invoices against the terminal. Add auth before sharing the
+  URL beyond yourself.
+- Amounts accept up to 2 decimal places (kopiykas); the description becomes
+  the invoice's `destination` shown to the payer.
+
 ## Docker
 
 ```powershell
