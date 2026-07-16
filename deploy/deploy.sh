@@ -12,7 +12,6 @@
 # source on the server.
 #
 # Usage:  ./deploy/deploy.sh
-set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKER="$SCRIPT_DIR/_server_deploy.sh"
