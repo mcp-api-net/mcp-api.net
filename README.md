@@ -5,6 +5,7 @@ FastAPI marketing site for an MCP consulting / integration / managed-service bus
 ## Stack
 - FastAPI + Jinja2 templates
 - Bootstrap 5 (CDN) for CSS/JS
+- MongoDB (pymongo) for invoice storage — shared `onlik` cluster
 - All UI strings in a single JSON file: `app/locales/strings.json`
 - Languages: English (`en`) and Ukrainian (`uk`)
 
@@ -39,18 +40,35 @@ Open http://127.0.0.1:8000
 Pay button uses Monobank's [invoice/create](https://monobank.ua/api-docs/acquiring/methods/ia/post--api--merchant--invoice--create) API.
 
 - Set `MONOBANK_API_KEY` (X-Token from the acquiring terminal).
-- `GET /pay/test` renders the test-payment page; `POST /pay/test` creates an invoice and 303-redirects to Monobank's `pageUrl`.
-- `POST /webhooks/monobank` receives invoice status callbacks. TODOs in `app/main.py`: verify `X-Sign` (ECDSA), idempotency, invoice matching, side effects.
+- `GET /pay/test` renders the test-payment page; `POST /pay/test` creates an invoice and 303-redirects to Monobank's `pageUrl`. Test payments are not persisted.
+- `POST /webhooks/monobank` receives invoice status callbacks: verifies `X-Sign`
+  (ECDSA over the raw body, merchant pubkey from `/api/merchant/pubkey`, cached
+  and re-fetched once on mismatch; invalid → 403), records every verified hit in
+  `onlik.webhook_hits` (including invoices issued on other sites under the same
+  merchant), and updates the matching invoice in `onlik.invoices` — repeated /
+  out-of-order webhooks are ignored via `modifiedDate`. When `MONOBANK_API_KEY`
+  is unset (local dev), signature checks are skipped.
 
 ### Invoice creation (`/pay/invoice`)
 
 Internal tool for billing clients: open `/pay/invoice`, enter a service
 description, an amount and a currency (UAH, USD or EUR), and the server
-creates a Monobank invoice and shows the resulting payment link (`pageUrl`).
-Copy the link and send it to the client — they pay online on Monobank's
-hosted page, and the settlement status arrives on `POST /webhooks/monobank`
-like any other invoice.
+creates a Monobank invoice and shows the resulting payment link (`pageUrl`)
+and the invoice number. Copy the link and send it to the client — they pay
+online on Monobank's hosted page, and the settlement status arrives on
+`POST /webhooks/monobank` like any other invoice.
 
+- Each invoice gets a random (non-sortable) public number in the format
+  `INV-{digit}{3 chars}`, e.g. `INV-5FZW`. The alphabet (`12456789DFGJLNQRSUVWZ`)
+  excludes Latin letters with identical-looking Cyrillic counterparts and the
+  digits 0/3 (lookalikes of О/З). Uniqueness is enforced by a unique Mongo
+  index with retry on collision.
+- Invoices are persisted in MongoDB (`MONGODB_URI`, database `onlik`,
+  collection `invoices`); the number is sent to Monobank as
+  `merchantPaymInfo.reference`, and the webhook drives the status:
+  `pending → created → processing/success/failure/expired/reversed`
+  (`error` if invoice creation failed). If `MONGODB_URI` is unset, links are
+  still created with a random `inv-<uuid>` reference, just not persisted.
 - The page is intentionally **not linked** from anywhere on the site — reach
   it by URL only.
 - There is also **no authentication** on it: anyone who knows the URL can
@@ -86,8 +104,8 @@ Deploy with:
 
 Works from a dev machine (pushes, then runs the deploy over SSH) or directly
 on the server (deploys in place). The server-side `.env` (`MONOBANK_API_KEY`,
-`MONOBANK_REDIRECT_URL`, `MONOBANK_WEBHOOK_URL`) is not committed — see
-`.env.example`.
+`MONOBANK_REDIRECT_URL`, `MONOBANK_WEBHOOK_URL`, `MONGODB_URI`) is not
+committed — see `.env.example`.
 
 ## Publishing to GHCR
 
