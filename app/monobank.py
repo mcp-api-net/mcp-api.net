@@ -80,6 +80,13 @@ def create_invoice(
             "destination": destination,
         },
         "paymentType": "debit",
+        # validity
+        #
+        # integer <int64>
+        #
+        # Строк дії в секундах, за замовчуванням рахунок перестає бути дійсним через 24 години. Максимальний термін життя інвойса який можна задати - 30 днів. Якщо передати більше 30 днів, то автоматично обрізається до 30 днів
+        # 7 days:
+        "validity": 7 * 24 * 60 * 60,
     }
     redirect = redirect_url or cfg.redirect_url
     if redirect:
