@@ -14,7 +14,10 @@
         <div class="card-body">
           <h2 class="h5 fw-bold text-success">{{ t.invoice_ready_title }}</h2>
           <p class="mb-1">{{ description }} — <strong>{{ invoice_amount }} {{ invoice_currency }}</strong></p>
-          <p class="mb-3">{{ t.invoice_id_label }}: <code class="user-select-all">{{ invoice_id }}</code></p>
+          {% if invoice_number %}
+            <p class="mb-1">{{ t.invoice_number_label }}: <code class="user-select-all fs-5">{{ invoice_number }}</code></p>
+          {% endif %}
+          <p class="text-secondary small mb-3">{{ t.invoice_id_label }}: <code class="user-select-all">{{ invoice_id }}</code></p>
 
           <div class="input-group mb-3">
             <input type="text" class="form-control" id="invoice-url" value="{{ invoice_url }}" readonly>

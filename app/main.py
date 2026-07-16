@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import monobank
+from app import invoices, monobank
 
 log = logging.getLogger("mcp-api.net")
 
@@ -249,30 +249,49 @@ async def pay_invoice_create(
         extra["error"] = "currency"
         return render(request, "pay_invoice.html", "pay_invoice", extra)
 
+    number = None
+    if invoices.configured():
+        try:
+            number = invoices.reserve(description=description, amount_minor=amount_minor, currency=currency)
+        except Exception:
+            log.exception("Failed to persist invoice")
+            extra["error"] = "api"
+            return render(request, "pay_invoice.html", "pay_invoice", extra)
+    else:
+        log.warning("MONGODB_URI is not set; invoice will not be persisted")
+
     base = str(request.base_url).rstrip("/")
     try:
         invoice = monobank.create_invoice(
             MONOBANK,
             amount_minor=amount_minor,
             currency=currency,
-            reference=f"inv-{uuid.uuid4().hex[:12]}",
+            reference=number or f"inv-{uuid.uuid4().hex[:12]}",
             destination=description,
             redirect_url=MONOBANK.redirect_url or f"{base}/payment/success",
             webhook_url=MONOBANK.webhook_url or f"{base}/webhooks/monobank",
         )
     except Exception:
         log.exception("Monobank invoice create failed")
+        if number:
+            invoices.mark_error(number)
         extra["error"] = "api"
         return render(request, "pay_invoice.html", "pay_invoice", extra)
 
     page_url = invoice.get("pageUrl")
     if not page_url:
         log.error("Monobank response missing pageUrl: %s", invoice)
+        if number:
+            invoices.mark_error(number)
         extra["error"] = "api"
         return render(request, "pay_invoice.html", "pay_invoice", extra)
 
+    if number:
+        invoices.attach_payment_link(number, invoice_id=invoice.get("invoiceId", ""), page_url=page_url)
+
     extra.update(
         {
+            "invoice_number": number,
             "invoice_url": page_url,
             "invoice_id": invoice.get("invoiceId", ""),
             "invoice_amount": f"{amount_minor / 100:.2f}",
@@ -294,13 +313,16 @@ async def payment_fail(request: Request):
 
 @app.post("/webhooks/monobank")
 async def monobank_webhook(request: Request):
-    """Monobank invoice status webhook. Logs the payload."""
+    """Monobank invoice status webhook: verify X-Sign, record the hit, update the invoice."""
+    body = await request.body()
+    if MONOBANK.configured:
+        if not monobank.verify_webhook(MONOBANK, body, request.headers.get("X-Sign", "")):
+            log.warning("Monobank webhook rejected: missing or invalid X-Sign")
+            return JSONResponse({"error": "invalid signature"}, status_code=403)
     try:
-        payload = await request.json()
+        payload = json.loads(body)
     except Exception:
         payload = {}
-    # TODO: verify X-Sign (ECDSA over body using /api/merchant/pubkey),
-    # persist invoice, mark order paid, send receipt.
     log.info(
         "Monobank webhook: invoiceId=%s status=%s amount=%s ccy=%s",
         payload.get("invoiceId"),
@@ -308,6 +330,11 @@ async def monobank_webhook(request: Request):
         payload.get("amount"),
         payload.get("ccy"),
     )
+    if payload and invoices.configured():
+        try:
+            invoices.handle_webhook(payload)
+        except Exception:
+            log.exception("Failed to persist Monobank webhook")
     return JSONResponse({"received": True})
 
 
