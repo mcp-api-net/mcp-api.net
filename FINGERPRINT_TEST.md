@@ -60,7 +60,23 @@ What the comparison shows:
 | FP ID | same/different hash of the stable subset (components badged *in FP ID*) |
 | Values changed | leaf values with distance > 0 |
 
-Per component: a distance bar, the badges *in FP ID*, *hash ≠/=*, *lied: A/B*, *missing*, and on
+**Component summary table** (also as CSV): one row per component with its **result**,
+**comparison type** and counts. Click a row to jump to its details.
+
+- *binary*: a single non-numeric value → `match` / `no match`
+- *proportional*: several exact-match values → similarity = share of values that match
+- *continuous*: contains lists or numbers → graded similarity (Jaccard / relative difference); shows
+  how many of its values are graded vs exact-match
+
+Result is similarity (100% = identical; tiny real differences show as `>99.99%`, never rounded to 100%).
+Columns also include values changed, `$hash` match, weight, *in FP ID*, and *lied* flags.
+
+**Raw values table**: every flattened value (`component`, `path`, A, B, per-value distance), with a
+component filter, text search, *only differences*, *show more* paging, click-to-copy of the full value
+(data URIs, long lists), and CSV export. Works for a single fingerprint too: **raw** on a stored run,
+or **Raw values only** with one paste box filled.
+
+**Component distances**: per component a distance bar, the badges *in FP ID*, *hash ≠/=*, *lied: A/B*, *missing*, and on
 click an explanation of what the component measures plus every changed value (A vs B, with a
 per-value distance; lists show added/removed items).
 

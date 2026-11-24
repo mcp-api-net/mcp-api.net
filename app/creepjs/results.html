@@ -104,6 +104,20 @@
 		.matrix th.rowh { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 		.tooltip { position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; z-index: 50; max-width: 320px; }
 		details summary { cursor: pointer; color: var(--text-secondary); }
+		.summary td { font-size: 13px; }
+		.summary td.num, .summary th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+		.summary tr { cursor: pointer; }
+		.summary tr:hover td { background: var(--surface-2); }
+		.summary .mini { display: inline-block; width: 70px; height: 8px; background: var(--bar-track); border-radius: 4px; vertical-align: middle; margin-right: 6px; position: relative; overflow: hidden; }
+		.summary .mini i { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 0 4px 4px 0; }
+		.summary .what { color: var(--text-secondary); font-size: 12px; min-width: 240px; max-width: 380px; }
+		.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
+		.pill.match { color: var(--same); border: 1px solid var(--same); }
+		.pill.nomatch { color: var(--diff); border: 1px solid var(--diff); }
+		.raw td.v { cursor: copy; }
+		.raw td.v:hover { outline: 1px dashed var(--border); }
+		.raw tr.changed td.path { color: var(--diff); }
+		.raw td.comp-col { white-space: nowrap; color: var(--text-secondary); }
 		.hidden { display: none !important; }
 	</style>
 </head>
@@ -149,6 +163,7 @@
 		</div>
 		<div class="row" style="margin-top:8px">
 			<button id="compare" class="primary" type="button">Compare</button>
+			<button id="raw-only" type="button" title="Show raw values of A (and B if filled) without comparing">Raw values only</button>
 			<button id="swap" type="button">Swap A ↔ B</button>
 			<button id="clear" type="button">Clear</button>
 			<span id="cmp-msg" class="msg"></span>
@@ -172,12 +187,34 @@
 				<p><b>Component distance</b> is the mean of its leaf distances. <b>Weighted distance</b> averages component distances using the weights shown on each row, which reflect how much identifying entropy a component carries (canvas, WebGL, audio and fonts count most; error bookkeeping counts least). <b>Unweighted</b> treats every component equally. <b>Components changed</b> counts components whose CreepJS <span class="mono">$hash</span> differs. <b>Fuzzy bins</b> compares CreepJS's 64-character fuzzy hash: each hex character is a hash of one bin of metrics, so the number of differing characters estimates how much of the fingerprint moved. <b>FP ID</b> is the hash of the stable subset (the components marked <span class="badge">in FP ID</span>).</p>
 			</div>
 		</details>
-		<h3>Components <span class="muted" style="font-weight:400">sorted by distance; click a row for explanation and the changed values</span></h3>
+		<h3>Component summary</h3>
+		<div class="legend">
+			<span><b>binary</b>: a single non-numeric value, so it can only match or not</span>
+			<span><b>proportional</b>: several exact-match values; score = share of values that match</span>
+			<span><b>continuous</b>: contains lists or numbers (graded values, scored by Jaccard / relative difference); its other values are exact-match</span>
+			<span>score = similarity, 100% = identical</span>
+		</div>
+		<div class="table-wrap"><table id="comp-table" class="summary"></table></div>
+		<div class="row" style="margin-top:8px"><button type="button" id="dl-summary">download CSV</button></div>
+		<h3>Component distances <span class="muted" style="font-weight:400">click a row for explanation and the changed values</span></h3>
 		<div class="row" style="margin-bottom:6px">
 			<label><input type="checkbox" id="only-changed" checked> only changed components</label>
 			<select id="sort"><option value="dist">sort by distance</option><option value="weighted">sort by weighted impact</option><option value="name">sort by name</option></select>
 		</div>
 		<div id="components"></div>
+	</section>
+	<section class="card hidden" id="raw-card">
+		<h2>Raw values <span class="muted" style="font-weight:400;font-size:13px" id="raw-sub"></span></h2>
+		<div class="row" style="margin-bottom:8px">
+			<select id="raw-comp"><option value="">all components</option></select>
+			<input id="raw-search" placeholder="filter path or value" style="width:16em">
+			<label id="raw-diff-wrap"><input type="checkbox" id="raw-diff"> only differences</label>
+			<button type="button" id="dl-raw">download CSV</button>
+			<span class="muted" id="raw-count"></span>
+		</div>
+		<p class="muted" style="margin:0 0 8px">Click a value to copy its full content (data URIs, long lists).</p>
+		<div class="table-wrap"><table class="leaves raw" id="raw-table"></table></div>
+		<div class="row" style="margin-top:8px"><button type="button" id="raw-more" class="hidden">show more</button></div>
 	</section>
 </main>
 <div class="tooltip" id="tooltip"></div>

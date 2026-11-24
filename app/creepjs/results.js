@@ -64,7 +64,7 @@
 	// ---------------------------------------------------------------- helpers
 	const $ = (id) => document.getElementById(id)
 	const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-	const pct = (x) => (x * 100).toFixed(x > 0 && x < 0.001 ? 2 : 1) + '%'
+	const pct = (x) => x > 0 && x < 0.0001 ? '<0.01%' : (x * 100).toFixed(x > 0 && x < 0.001 ? 2 : 1) + '%'
 	const short = (s, n = 12) => (s ? String(s).slice(0, n) : '—')
 	const storage = {
 		get(k) { try { return localStorage.getItem(k) } catch (e) { return null } },
@@ -172,7 +172,12 @@
 		}
 		leaves.sort((x, y) => y.d - x.d || x.path.localeCompare(y.path))
 		const hashA = a && a.$hash, hashB = b && b.$hash
+		// comparison mode: binary (one exact-match value), proportional (several), continuous (lists/numbers)
+		const isGraded = (l) => !!l && (l.set !== undefined || typeof l.v === 'number')
+		const gradedCount = paths.filter((p) => isGraded(fa.get(p)) || isGraded(fb.get(p))).length
+		const mode = gradedCount ? 'continuous' : paths.length > 1 ? 'proportional' : 'binary'
 		return {
+			mode, gradedCount,
 			distance: paths.length ? sum / paths.length : 0,
 			total: paths.length,
 			changed: leaves.filter((l) => l.d > 0).length,
@@ -232,6 +237,8 @@
 		]
 		$('tiles').innerHTML = tiles.map((t) => `<div class="tile"><div class="v">${t.raw ? t.v : esc(t.v)}</div><div class="l">${esc(t.l)}</div><div class="h">${esc(t.h)}</div></div>`).join('')
 		renderComponents()
+		renderSummary()
+		showRaw(A, B)
 		$('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' })
 	}
 
@@ -304,7 +311,186 @@
 		el.classList.toggle('open')
 	})
 	$('only-changed').addEventListener('change', renderComponents)
-	$('sort').addEventListener('change', renderComponents)
+	$('sort').addEventListener('change', () => { renderComponents(); renderSummary() })
+
+	// ---------------------------------------------------------------- component summary table
+	const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim()
+
+	function summaryRows() {
+		if (!current) return []
+		const sort = $('sort').value
+		const rows = current.result.comps.slice()
+		rows.sort((x, y) => {
+			if (sort === 'name') return x.info.label.localeCompare(y.info.label)
+			if (sort === 'weighted') return y.distance * y.info.weight - x.distance * x.info.weight
+			return y.distance - x.distance || x.info.label.localeCompare(y.info.label)
+		})
+		return rows.map((c) => {
+			const sim = 1 - c.distance
+			const match = c.changed === 0 && !c.missing
+			return {
+				c, sim, match,
+				key: c.key, label: c.info.label, what: firstSentence(c.info.explain), mode: c.mode,
+				hash: c.hashSame === null ? '' : c.hashSame ? 'match' : 'differs',
+				result: c.mode === 'binary' ? (match ? 'match' : 'no match') : simText(sim),
+				graded: c.gradedCount, exact: c.total - c.gradedCount,
+				changed: c.changed, total: c.total, weight: c.info.weight, inFp: c.info.inFp,
+				lied: [c.lied.a && 'A', c.lied.b && 'B'].filter(Boolean).join(' '),
+			}
+		})
+	}
+
+	// never round a real difference up to 100% or a real overlap down to 0%
+	const simText = (sim) => sim >= 1 ? '100%' : sim > 0.9999 ? '>99.99%' : sim <= 0 ? '0%' : sim < 0.0001 ? '<0.01%' : (sim * 100).toFixed(2) + '%'
+
+	function renderSummary() {
+		const rows = summaryRows()
+		$('comp-table').innerHTML = '<thead><tr><th>component</th><th>result</th><th>comparison</th><th class="num">values changed</th><th>$hash</th><th class="num">weight</th><th>in FP ID</th><th>lied</th><th>what it measures</th></tr></thead><tbody>' +
+			rows.map((r) => {
+				const result = r.mode === 'binary'
+					? `<span class="pill ${r.match ? 'match' : 'nomatch'}">${r.match ? 'match' : 'no match'}</span>`
+					: `<span class="mini"><i style="width:${(r.sim * 100).toFixed(1)}%"></i></span>${r.match ? '<span class="pill match">100%</span>' : esc(r.result)}`
+				return `<tr data-key="${esc(r.key)}" data-tip="${esc(`${r.label}: ${r.mode} comparison, similarity ${simText(r.sim)}, ${r.changed}/${r.total} values changed. Click for details`)}">
+					<td><b>${esc(r.label)}</b><div class="mono muted">${esc(r.key)}</div></td>
+					<td class="num" style="text-align:left">${result}</td>
+					<td>${esc(r.mode)}<div class="muted" style="font-size:11px;white-space:nowrap">${r.graded} graded · ${r.exact} exact</div></td>
+					<td class="num">${r.changed} / ${r.total}</td>
+					<td>${r.hash ? `<span class="${r.hash === 'match' ? 'same' : 'diff'}">${r.hash}</span>` : '<span class="muted">—</span>'}</td>
+					<td class="num">${r.weight}</td>
+					<td>${r.inFp ? 'yes' : ''}</td>
+					<td>${r.lied ? `<span class="diff">${esc(r.lied)}</span>` : ''}</td>
+					<td class="what">${esc(r.what)}</td>
+				</tr>`
+			}).join('') + '</tbody>'
+	}
+
+	$('comp-table').addEventListener('click', (e) => {
+		const tr = e.target.closest('tr[data-key]')
+		if (!tr) return
+		$('only-changed').checked = false
+		renderComponents()
+		const el = document.querySelector(`.comp[data-key="${CSS.escape(tr.dataset.key)}"]`)
+		if (!el) return
+		if (!el.classList.contains('open')) el.querySelector('.comp-head').click()
+		el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+	})
+
+	function csvCell(v) {
+		const s = v === undefined || v === null ? '' : typeof v === 'string' ? v : JSON.stringify(v)
+		return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
+	}
+	function download(name, rows) {
+		const blob = new Blob(['﻿' + rows.map((r) => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' })
+		const a = document.createElement('a')
+		a.href = URL.createObjectURL(blob)
+		a.download = name
+		document.body.appendChild(a)
+		a.click()
+		a.remove()
+		setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+	}
+	const fileStem = () => ['fp', raw.A && (raw.A.meta.tag || raw.A.meta.id), raw.B && (raw.B.meta.tag || raw.B.meta.id)].filter(Boolean).join('_').replace(/[^\w.-]+/g, '-')
+
+	$('dl-summary').addEventListener('click', () => {
+		download(fileStem() + '_components.csv', [
+			['component', 'key', 'comparison', 'graded_values', 'exact_values', 'similarity', 'result', 'values_changed', 'values_total', 'hash', 'weight', 'in_fp_id', 'lied', 'what_it_measures'],
+			...summaryRows().map((r) => [r.label, r.key, r.mode, r.graded, r.exact, r.sim.toFixed(6), r.result, r.changed, r.total, r.hash, r.weight, r.inFp, r.lied, r.what]),
+		])
+	})
+
+	// ---------------------------------------------------------------- raw values table
+	const RAW_PAGE = 600
+	let raw = { A: null, B: null, rows: [], shown: RAW_PAGE, visible: [] }
+	const leafValue = (l) => (l === undefined ? undefined : l.set !== undefined ? l.set : l.v)
+
+	function buildRawRows(A, B) {
+		const keys = [...new Set([...Object.keys(A.fp), ...(B ? Object.keys(B.fp) : [])])]
+		const rows = []
+		for (const key of keys) {
+			const fa = A.fp[key] === undefined ? new Map() : flatten(A.fp[key], '', new Map())
+			const fb = !B ? null : B.fp[key] === undefined ? new Map() : flatten(B.fp[key], '', new Map())
+			const paths = [...new Set([...fa.keys(), ...(fb ? fb.keys() : [])])]
+			for (const p of paths) {
+				const la = fa.get(p)
+				const lb = fb ? fb.get(p) : undefined
+				const d = fb ? leafDistance(la, lb).d : null
+				rows.push({ key, label: compInfo(key).label, path: p || '(value)', a: leafValue(la), b: leafValue(lb), d })
+			}
+		}
+		return rows
+	}
+
+	function showRaw(A, B) {
+		raw = { A, B, rows: buildRawRows(A, B), shown: RAW_PAGE, visible: [] }
+		const keys = [...new Set(raw.rows.map((r) => r.key))]
+		const prev = $('raw-comp').value
+		$('raw-comp').innerHTML = '<option value="">all components</option>' + keys.map((k) => `<option value="${esc(k)}">${esc(compInfo(k).label)}</option>`).join('')
+		if (keys.includes(prev)) $('raw-comp').value = prev
+		$('raw-diff-wrap').classList.toggle('hidden', !B)
+		if (!B) $('raw-diff').checked = false
+		$('raw-sub').textContent = B ? `A: ${A.meta.label} · B: ${B.meta.label}` : A.meta.label
+		$('raw-card').classList.remove('hidden')
+		renderRaw()
+	}
+
+	function filteredRaw() {
+		const comp = $('raw-comp').value
+		const q = $('raw-search').value.trim().toLowerCase()
+		const onlyDiff = $('raw-diff').checked
+		return raw.rows.filter((r) => {
+			if (comp && r.key !== comp) return false
+			if (onlyDiff && !(r.d > 0)) return false
+			if (q) {
+				const hay = (r.key + '.' + r.path + ' ' + JSON.stringify(r.a ?? '') + ' ' + JSON.stringify(r.b ?? '')).toLowerCase()
+				if (!hay.includes(q)) return false
+			}
+			return true
+		})
+	}
+
+	function renderRaw() {
+		const two = !!raw.B
+		const rows = filteredRaw()
+		const shown = rows.slice(0, raw.shown)
+		$('raw-count').textContent = `${rows.length} value(s)` + (rows.length > shown.length ? `, showing ${shown.length}` : '')
+		$('raw-more').classList.toggle('hidden', rows.length <= shown.length)
+		const cell = (v, i, side) => `<td class="v" data-i="${i}" data-side="${side}" title="click to copy">${preview(v, 200)}</td>`
+		$('raw-table').innerHTML = `<thead><tr><th>component</th><th>path</th><th>${two ? 'A' : 'value'}</th>${two ? '<th>B</th><th>dist</th>' : ''}</tr></thead><tbody>` +
+			shown.map((r, i) => `<tr class="${two && r.d > 0 ? 'changed' : ''}">
+				<td class="comp-col">${esc(r.label)}</td>
+				<td class="path">${esc(r.path)}</td>
+				${cell(r.a, i, 'a')}
+				${two ? cell(r.b, i, 'b') + `<td class="d">${r.d > 0 ? pct(r.d) : '<span class="muted">=</span>'}</td>` : ''}
+			</tr>`).join('') + '</tbody>'
+		raw.visible = shown
+	}
+
+	$('raw-table').addEventListener('click', async (e) => {
+		const td = e.target.closest('td.v')
+		if (!td) return
+		const r = raw.visible[+td.dataset.i]
+		if (!r) return
+		const v = td.dataset.side === 'a' ? r.a : r.b
+		const text = v === undefined ? '' : typeof v === 'string' ? v : JSON.stringify(v)
+		try {
+			await navigator.clipboard.writeText(text)
+			$('raw-count').textContent = `copied ${r.key}.${r.path} (${text.length} chars)`
+		} catch (err) {
+			$('raw-count').textContent = 'copy failed: ' + (err.message || err)
+		}
+	})
+	$('raw-comp').addEventListener('change', () => { raw.shown = RAW_PAGE; renderRaw() })
+	$('raw-diff').addEventListener('change', () => { raw.shown = RAW_PAGE; renderRaw() })
+	let rawTimer
+	$('raw-search').addEventListener('input', () => { clearTimeout(rawTimer); rawTimer = setTimeout(() => { raw.shown = RAW_PAGE; renderRaw() }, 200) })
+	$('raw-more').addEventListener('click', () => { raw.shown += RAW_PAGE; renderRaw() })
+	$('dl-raw').addEventListener('click', () => {
+		const two = !!raw.B
+		download(fileStem() + '_raw.csv', [
+			two ? ['component', 'path', 'A', 'B', 'distance'] : ['component', 'path', 'value'],
+			...filteredRaw().map((r) => (two ? [r.key, r.path, r.a, r.b, r.d] : [r.key, r.path, r.a])),
+		])
+	})
 
 	// ---------------------------------------------------------------- tooltip
 	const tip = $('tooltip')
@@ -323,6 +509,20 @@
 		$('cmp-msg').textContent = ''
 		try {
 			renderComparison(normalize($('in-a').value, 'A'), normalize($('in-b').value, 'B'))
+		} catch (e) {
+			$('cmp-msg').textContent = e.message
+		}
+	})
+	$('raw-only').addEventListener('click', () => {
+		$('cmp-msg').textContent = ''
+		try {
+			const hasA = $('in-a').value.trim()
+			const hasB = $('in-b').value.trim()
+			if (!hasA && !hasB) throw new Error('paste a fingerprint into A or B first')
+			const A = hasA ? normalize($('in-a').value, 'A') : normalize($('in-b').value, 'B')
+			const B = hasA && hasB ? normalize($('in-b').value, 'B') : null
+			showRaw(A, B)
+			$('raw-card').scrollIntoView({ behavior: 'smooth', block: 'start' })
 		} catch (e) {
 			$('cmp-msg').textContent = e.message
 		}
@@ -370,7 +570,7 @@
 				<td class="mono" title="${esc(r.fuzzy || '')}">${esc(short(r.fuzzy))}</td>
 				<td class="mono">${esc(r.ip || '')}</td>
 				<td class="ellipsis" title="${esc(r.user_agent || '')}">${esc(r.user_agent || '')}</td>
-				<td><button type="button" data-paste="${esc(r.id)}" title="Put this run's JSON into the next empty paste box">paste ↓</button></td>
+				<td style="white-space:nowrap"><button type="button" data-raw="${esc(r.id)}" title="Show all raw values of this run">raw</button> <button type="button" data-paste="${esc(r.id)}" title="Put this run's JSON into the next empty paste box">paste ↓</button></td>
 			</tr>`
 		}).join('')
 		$('cmp-selected').disabled = selected.length !== 2
@@ -394,6 +594,17 @@
 	const runLabel = (doc) => doc.tag || short(doc.id, 8)
 
 	$('runs-body').addEventListener('click', async (e) => {
+		const rawId = e.target.dataset && e.target.dataset.raw
+		if (rawId) {
+			try {
+				const doc = await getFull(rawId)
+				showRaw(normalize(doc, `run ${runLabel(doc)}`), null)
+				$('raw-card').scrollIntoView({ behavior: 'smooth', block: 'start' })
+			} catch (err) {
+				$('runs-msg').textContent = err.message
+			}
+			return
+		}
 		const id = e.target.dataset && e.target.dataset.paste
 		if (!id) return
 		try {
