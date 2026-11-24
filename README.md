@@ -34,7 +34,7 @@ Open http://127.0.0.1:8000
 - `/warranty` — money-back policy
 - `/contacts`
 - Language switch: `/set-lang/en` or `/set-lang/uk`
-- `/test/` — browser-fingerprint test page (not linked, `Disallow`ed in `/robots.txt`, `noindex`); see below
+- `/test/` — browser-fingerprint test page (not linked, `Disallow`ed in `/robots.txt`, `noindex`); see below and [FINGERPRINT_TEST.md](FINGERPRINT_TEST.md)
 
 ## Fingerprint test page (`/test/`)
 
