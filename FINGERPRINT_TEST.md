@@ -37,9 +37,44 @@ MongoDB cluster from `MONGODB_URI` (same as invoices), **separate database** `fi
 
 Indexes: `received_at`, `tag`, `fp_id`.
 
-## Reading results
+## Results & comparison page (`/test/results`)
 
-Either query Mongo directly, e.g.
+Open <https://mcp-api.net/test/results> (also linked from the bar on `/test/`).
+
+- **Stored runs**: enter `FP_TEST_TOKEN` (remembered in the browser), optionally a tag filter,
+  **Load runs**. Tick 2 runs → **Compare selected** (first ticked = A), or 3+ → **Distance
+  matrix** (weighted distance for every pair; click a cell to open that pair). **paste ↓** puts a
+  run's full JSON into the next empty paste box.
+- **Paste comparison**: paste any two fingerprints, either a stored run, the output of **copy JSON**
+  on `/test/`, or a raw CreepJS `window.Fingerprint`. Comparison runs entirely in the browser, so
+  pasted data never leaves it. `window.fpCompare` exposes `compare/normalize/flatten` for console use.
+
+What the comparison shows:
+
+| metric | meaning |
+|---|---|
+| Weighted distance | mean of component distances weighted by identifying power (canvas/WebGL 3, audio/fonts/DOMRect/screen/navigator/worker 2, most others 1, error bookkeeping ≤0.5) |
+| Unweighted distance | plain mean of component distances |
+| Components changed | components whose CreepJS `$hash` differs (x / 25) |
+| Fuzzy bins differ | differing characters of the 64-char CreepJS fuzzy hash; each char hashes one bin of metrics |
+| FP ID | same/different hash of the stable subset (components badged *in FP ID*) |
+| Values changed | leaf values with distance > 0 |
+
+Per component: a distance bar, the badges *in FP ID*, *hash ≠/=*, *lied: A/B*, *missing*, and on
+click an explanation of what the component measures plus every changed value (A vs B, with a
+per-value distance; lists show added/removed items).
+
+Leaf distances: lists of values → Jaccard distance; numbers → relative difference
+`|a−b| / max(|a|,|b|)` capped at 1; strings/booleans/data URIs → 0 or 1; missing on one side → 1.
+Component distance = mean of its leaf distances.
+
+The data API behind the page (token as `X-FP-Token` header or `?token=`; 404 without a valid
+token or when `FP_TEST_TOKEN` is unset on the server):
+
+- `GET /test/api/results?[tag=…][&limit=100]`: summaries, newest first
+- `GET /test/api/results/{id}`: full document
+
+Or query Mongo directly:
 
 ```js
 use fingerprints
@@ -50,22 +85,16 @@ db.fp_tests.aggregate([{$group: {_id: {tag: "$tag", fp: "$fp_id"}, n: {$sum: 1}}
 db.fp_tests.find({}, {tag: 1, "fingerprint.lies.totalLies": 1, "fingerprint.headless": 1})
 ```
 
-or over HTTP, after setting `FP_TEST_TOKEN=<random>` in the server `.env` and redeploying:
-
-- `GET /test/results?token=…[&tag=…][&limit=50]` — summaries (no big blobs), newest first
-- `GET /test/results/{id}?token=…` — full document
-
-Without `FP_TEST_TOKEN` both endpoints return 404.
-
 ## Code map
 
 | path | role |
 |---|---|
 | `app/creepjs/creep.js`, `style.min.css`, `favicon.ico`, `LICENSE` | vendored CreepJS build (MIT), commit in `app/creepjs/VERSION` |
 | `app/creepjs/index.html` | CreepJS page, adapted: collector bar, `noindex`, test sub-page links removed |
-| `app/creepjs/collect.js` | waits for `window.Fingerprint`/`window.Creep`, POSTs to `/test/collect` |
+| `app/creepjs/collect.js` | waits for `window.Fingerprint`/`window.Creep`, POSTs to `/test/collect`; **copy JSON** button |
+| `app/creepjs/results.html`, `results.js` | results list, pairwise comparison, distance matrix (client-side) |
 | `app/fptest.py` | Mongo storage + results queries |
-| `app/main.py` | `/robots.txt`, `/test` → `/test/` redirect, `/test/collect`, `/test/results*`, static mount at `/test` |
+| `app/main.py` | `/robots.txt`, `/test` → `/test/` redirect, `/test/collect`, `/test/results` page, `/test/api/results*`, static mount at `/test` |
 
 The page must live at `/test/` (trailing slash): `creep.js` registers itself as a service/shared
 worker via the relative path `./creep.js`, so assets are mounted under `/test/` too.

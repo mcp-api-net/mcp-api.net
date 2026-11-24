@@ -47,8 +47,9 @@ POSTs the full result (`window.Fingerprint`, `window.Creep`, FP ID, fuzzy hash) 
   `/test/?tag=chrome-incognito-vpn`; **save again** re-posts the current result.
 - Storage: same cluster as invoices (`MONGODB_URI`) but a separate database — `FP_DB_NAME`,
   default `fingerprints` — collection `fp_tests`. Document shape is documented in `app/fptest.py`.
-- Read back: set `FP_TEST_TOKEN` in `.env`, then `GET /test/results?token=…[&tag=…&limit=…]`
-  (summaries) and `GET /test/results/{id}?token=…` (full document). Without the token they 404.
+- Read back & compare: `/test/results` (list, pairwise comparison with per-component distances,
+  distance matrix). Its data API `/test/api/results[/{id}]` needs `FP_TEST_TOKEN` in `.env`
+  (sent as `X-FP-Token`); without it the API 404s. Paste comparison works without a token.
 - Not captured: TLS/JA3/JA4 and HTTP/2 fingerprints — Caddy terminates TLS. Header order is as
   received from Caddy, which may not match what the browser sent.
 - To update CreepJS: copy `docs/creep.js` and `docs/style.min.css` from a newer checkout into

@@ -86,20 +86,29 @@ async def fp_test_collect(request: Request):
 
 
 @app.get("/test/results", include_in_schema=False)
-async def fp_test_results(request: Request, token: str | None = None, tag: str | None = None, limit: int = 50):
-    if not fptest.token_ok(token) or not fptest.configured():
+async def fp_test_results_page():
+    return FileResponse(CREEPJS_DIR / "results.html", media_type="text/html", headers={**NOINDEX, "Cache-Control": "no-store"})
+
+
+def _fp_token(request: Request) -> str | None:
+    return request.headers.get("x-fp-token") or request.query_params.get("token")
+
+
+@app.get("/test/api/results", include_in_schema=False)
+async def fp_test_api_results(request: Request, tag: str | None = None, limit: int = 100):
+    if not fptest.token_ok(_fp_token(request)) or not fptest.configured():
         raise HTTPException(status_code=404)
-    return JSONResponse(fptest.recent(limit=limit, tag=tag), headers=NOINDEX)
+    return JSONResponse(fptest.recent(limit=limit, tag=tag), headers={**NOINDEX, "Cache-Control": "no-store"})
 
 
-@app.get("/test/results/{doc_id}", include_in_schema=False)
-async def fp_test_result(doc_id: str, token: str | None = None):
-    if not fptest.token_ok(token) or not fptest.configured():
+@app.get("/test/api/results/{doc_id}", include_in_schema=False)
+async def fp_test_api_result(request: Request, doc_id: str):
+    if not fptest.token_ok(_fp_token(request)) or not fptest.configured():
         raise HTTPException(status_code=404)
     doc = fptest.get(doc_id)
     if doc is None:
         raise HTTPException(status_code=404)
-    return JSONResponse(doc, headers=NOINDEX)
+    return JSONResponse(doc, headers={**NOINDEX, "Cache-Control": "no-store"})
 
 
 app.mount("/test", StaticFiles(directory=CREEPJS_DIR), name="creepjs")

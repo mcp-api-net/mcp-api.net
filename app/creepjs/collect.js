@@ -51,9 +51,30 @@
 			setStatus(`save failed: ${e.message || e}`)
 		} finally {
 			resendEl.disabled = false
+			copyEl.disabled = false
 		}
 	}
 	resendEl.addEventListener('click', send)
+
+	// copy the same payload (plus computed hashes) for the paste comparison on /test/results
+	const copyEl = document.getElementById('fp-copy')
+	copyEl.addEventListener('click', async () => {
+		const doc = {
+			tag: tagEl.value.trim() || null,
+			received_at: new Date().toISOString(),
+			fp_id: headerHash('FP ID'),
+			fuzzy: headerHash('Fuzzy'),
+			user_agent: navigator.userAgent,
+			fingerprint: window.Fingerprint,
+			creep: window.Creep,
+		}
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(doc))
+			setStatus('copied JSON to clipboard')
+		} catch (e) {
+			setStatus('copy failed: ' + (e.message || e))
+		}
+	})
 
 	const started = Date.now()
 	const timer = setInterval(() => {

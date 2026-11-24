@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow, noarchive">
+	<link rel="icon" href="favicon.ico">
+	<title>Fingerprint results</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--surface-0: #f4f3f0;
+			--surface-1: #fcfcfb;
+			--surface-2: #efeee9;
+			--border: #dcdad3;
+			--text-primary: #0b0b0b;
+			--text-secondary: #52514e;
+			--text-muted: #77756f;
+			--accent: #2a78d6;
+			--bar: #2a78d6;
+			--bar-track: #e7e5df;
+			--same: #1f7a4a;
+			--diff: #b4361f;
+			--add-bg: #e2f2e8;
+			--del-bg: #f8e3de;
+			--seq-0: #f0efec; --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+			--mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+			--sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+		}
+		@media (prefers-color-scheme: dark) {
+			:root:not([data-theme="light"]) {
+				color-scheme: dark;
+				--surface-0: #121211; --surface-1: #1a1a19; --surface-2: #242422; --border: #383835;
+				--text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+				--accent: #5598e7; --bar: #3987e5; --bar-track: #2c2c2a;
+				--same: #5cc48a; --diff: #f08a72; --add-bg: #1d3a28; --del-bg: #45231c;
+				--seq-0: #2a2a28; --seq-1: #0d366b; --seq-2: #104281; --seq-3: #184f95; --seq-4: #1c5cab; --seq-5: #2a78d6; --seq-6: #5598e7; --seq-7: #9ec5f4;
+			}
+		}
+		:root[data-theme="dark"] {
+			color-scheme: dark;
+			--surface-0: #121211; --surface-1: #1a1a19; --surface-2: #242422; --border: #383835;
+			--text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+			--accent: #5598e7; --bar: #3987e5; --bar-track: #2c2c2a;
+			--same: #5cc48a; --diff: #f08a72; --add-bg: #1d3a28; --del-bg: #45231c;
+			--seq-0: #2a2a28; --seq-1: #0d366b; --seq-2: #104281; --seq-3: #184f95; --seq-4: #1c5cab; --seq-5: #2a78d6; --seq-6: #5598e7; --seq-7: #9ec5f4;
+		}
+		* { box-sizing: border-box; }
+		body { margin: 0; background: var(--surface-0); color: var(--text-primary); font: 14px/1.5 var(--sans); }
+		main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 80px; }
+		h1 { font-size: 22px; margin: 0 0 4px; }
+		h2 { font-size: 16px; margin: 0 0 12px; }
+		h3 { font-size: 14px; margin: 20px 0 8px; }
+		a { color: var(--accent); }
+		.sub { color: var(--text-secondary); margin: 0 0 20px; }
+		.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+		.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+		input, select, textarea, button { font: inherit; color: inherit; }
+		input, select, textarea { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+		textarea { width: 100%; min-height: 140px; font: 12px/1.4 var(--mono); resize: vertical; }
+		button { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+		button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+		button:disabled { opacity: .5; cursor: default; }
+		.muted { color: var(--text-muted); }
+		.mono { font-family: var(--mono); font-size: 12px; }
+		.msg { margin-left: 4px; color: var(--text-secondary); }
+		.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+		@media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+		.table-wrap { overflow-x: auto; }
+		table { border-collapse: collapse; width: 100%; }
+		th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+		th { font-weight: 600; color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
+		tr.sel td { background: var(--surface-2); }
+		.ellipsis { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+		.tile { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+		.tile .v { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+		.tile .l { font-size: 12px; color: var(--text-secondary); }
+		.tile .h { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+		.badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-secondary); margin-left: 4px; white-space: nowrap; }
+		.same { color: var(--same); }
+		.diff { color: var(--diff); }
+		/* component distance bars */
+		.comp { border-bottom: 1px solid var(--border); }
+		.comp-head { display: grid; grid-template-columns: 190px 1fr 64px 120px; gap: 12px; align-items: center; padding: 6px 4px; cursor: pointer; }
+		.comp-head:hover { background: var(--surface-2); }
+		@media (max-width: 760px) { .comp-head { grid-template-columns: 1fr 64px; } .comp-head .track, .comp-head .meta { grid-column: 1 / -1; } }
+		.comp-name { font-weight: 600; }
+		.track { height: 12px; background: var(--bar-track); border-radius: 4px; position: relative; overflow: hidden; }
+		.fill { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 0 4px 4px 0; min-width: 0; }
+		.pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+		.meta { font-size: 12px; color: var(--text-muted); text-align: right; }
+		.comp-body { display: none; padding: 4px 4px 14px; }
+		.comp.open .comp-body { display: block; }
+		.explain { color: var(--text-secondary); margin: 0 0 8px; max-width: 900px; }
+		.leaves td { font: 12px/1.4 var(--mono); word-break: break-all; }
+		.leaves td.path { white-space: nowrap; word-break: normal; }
+		.leaves td.d { text-align: right; white-space: nowrap; }
+		.set-add { background: var(--add-bg); border-radius: 3px; padding: 0 3px; margin: 1px; display: inline-block; }
+		.set-del { background: var(--del-bg); border-radius: 3px; padding: 0 3px; margin: 1px; display: inline-block; text-decoration: line-through; }
+		.legend { font-size: 12px; color: var(--text-secondary); display: flex; gap: 16px; flex-wrap: wrap; margin: 4px 0 8px; }
+		/* matrix */
+		.matrix td.cell { text-align: center; font: 12px var(--mono); cursor: pointer; min-width: 56px; border: 2px solid var(--surface-1); }
+		.matrix th.rowh { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.tooltip { position: fixed; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; z-index: 50; max-width: 320px; }
+		details summary { cursor: pointer; color: var(--text-secondary); }
+		.hidden { display: none !important; }
+	</style>
+</head>
+<body>
+<main>
+	<h1>Fingerprint results</h1>
+	<p class="sub">Stored runs from <a href="./">/test/</a> and a comparison tool for any two fingerprints. Pasted fingerprints are compared in your browser and never sent anywhere.</p>
+
+	<section class="card" id="runs-card">
+		<h2>Stored runs</h2>
+		<div class="row">
+			<input id="token" type="password" placeholder="FP_TEST_TOKEN" autocomplete="off" style="width:16em">
+			<input id="tag-filter" placeholder="tag filter (exact)" style="width:14em">
+			<select id="limit"><option>50</option><option selected>100</option><option>250</option><option>500</option></select>
+			<button id="load" class="primary" type="button">Load runs</button>
+			<span id="runs-msg" class="msg"></span>
+		</div>
+		<div id="runs" class="table-wrap hidden" style="margin-top:12px">
+			<div class="row" style="margin-bottom:8px">
+				<button id="cmp-selected" type="button" disabled>Compare selected (A ↔ B)</button>
+				<button id="matrix-selected" type="button" disabled>Distance matrix</button>
+				<span class="muted" id="sel-info">Select 2 runs to compare, or 3+ for a matrix. The first selected is A.</span>
+			</div>
+			<table>
+				<thead><tr><th></th><th>time (local)</th><th>tag</th><th>FP ID</th><th>fuzzy</th><th>IP</th><th>user agent</th><th></th></tr></thead>
+				<tbody id="runs-body"></tbody>
+			</table>
+		</div>
+	</section>
+
+	<section class="card hidden" id="matrix-card">
+		<h2>Distance matrix <span class="muted" style="font-weight:400;font-size:13px">weighted component distance; click a cell to compare that pair</span></h2>
+		<div class="table-wrap"><table class="matrix" id="matrix"></table></div>
+		<div class="legend" id="matrix-legend"></div>
+	</section>
+
+	<section class="card">
+		<h2>Compare two fingerprints</h2>
+		<p class="muted" style="margin-top:-6px">Paste a stored run (from <span class="mono">/test/api/results/&lt;id&gt;</span>), the JSON from the <b>copy JSON</b> button on /test/, or a raw CreepJS <span class="mono">window.Fingerprint</span>.</p>
+		<div class="grid2">
+			<label>A <textarea id="in-a" spellcheck="false" placeholder='{"fingerprint": {...}}'></textarea></label>
+			<label>B <textarea id="in-b" spellcheck="false" placeholder='{"fingerprint": {...}}'></textarea></label>
+		</div>
+		<div class="row" style="margin-top:8px">
+			<button id="compare" class="primary" type="button">Compare</button>
+			<button id="swap" type="button">Swap A ↔ B</button>
+			<button id="clear" type="button">Clear</button>
+			<span id="cmp-msg" class="msg"></span>
+		</div>
+	</section>
+
+	<section class="card hidden" id="result-card">
+		<h2>Comparison</h2>
+		<div class="mono muted" id="ab-labels"></div>
+		<div class="tiles" id="tiles"></div>
+		<details style="margin:8px 0 4px">
+			<summary>How the distances are computed</summary>
+			<div class="explain" style="margin-top:8px">
+				<p>Each component (navigator, canvas, WebGL, audio…) is flattened into leaf values. Every leaf gets a distance from 0 (identical) to 1 (completely different):</p>
+				<ul>
+					<li><b>lists of values</b> (fonts, voices, extensions, window keys…): Jaccard distance, 1 − |A∩B| / |A∪B|. Elements only in B are shown in green, elements only in A are struck through in red.</li>
+					<li><b>numbers</b>: relative difference |a−b| / max(|a|,|b|), capped at 1. Audio sums and measured sizes that drift slightly give small distances, not a full mismatch.</li>
+					<li><b>strings, booleans, data URIs</b>: 0 if equal, else 1.</li>
+					<li><b>missing on one side</b>: 1.</li>
+				</ul>
+				<p><b>Component distance</b> is the mean of its leaf distances. <b>Weighted distance</b> averages component distances using the weights shown on each row, which reflect how much identifying entropy a component carries (canvas, WebGL, audio and fonts count most; error bookkeeping counts least). <b>Unweighted</b> treats every component equally. <b>Components changed</b> counts components whose CreepJS <span class="mono">$hash</span> differs. <b>Fuzzy bins</b> compares CreepJS's 64-character fuzzy hash: each hex character is a hash of one bin of metrics, so the number of differing characters estimates how much of the fingerprint moved. <b>FP ID</b> is the hash of the stable subset (the components marked <span class="badge">in FP ID</span>).</p>
+			</div>
+		</details>
+		<h3>Components <span class="muted" style="font-weight:400">sorted by distance; click a row for explanation and the changed values</span></h3>
+		<div class="row" style="margin-bottom:6px">
+			<label><input type="checkbox" id="only-changed" checked> only changed components</label>
+			<select id="sort"><option value="dist">sort by distance</option><option value="weighted">sort by weighted impact</option><option value="name">sort by name</option></select>
+		</div>
+		<div id="components"></div>
+	</section>
+</main>
+<div class="tooltip" id="tooltip"></div>
+<script src="results.js" defer></script>
+</body>
+</html>

@@ -21,9 +21,10 @@ Document shape:
   fingerprint   window.Fingerprint (full CreepJS output)
   creep         window.Creep (the stable subset CreepJS hashes into FP ID)
 
-Results are readable at /test/results?token=… (summary list) and
-/test/results/{id}?token=… (full document) when FP_TEST_TOKEN is set; without
-it those endpoints 404.
+/test/results is a static page (results list + comparison tool). Its data comes
+from /test/api/results (summary list) and /test/api/results/{id} (full
+document), which require FP_TEST_TOKEN (X-FP-Token header or ?token=); without
+FP_TEST_TOKEN set they always 404.
 """
 
 from __future__ import annotations
