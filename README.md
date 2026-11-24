@@ -34,6 +34,25 @@ Open http://127.0.0.1:8000
 - `/warranty` — money-back policy
 - `/contacts`
 - Language switch: `/set-lang/en` or `/set-lang/uk`
+- `/test/` — browser-fingerprint test page (not linked, `Disallow`ed in `/robots.txt`, `noindex`); see below
+
+## Fingerprint test page (`/test/`)
+
+A vendored build of [CreepJS](https://github.com/abrahamjuliot/creepjs) (MIT; commit pinned in
+`app/creepjs/VERSION`) plus a collector bar. When CreepJS finishes, `app/creepjs/collect.js`
+POSTs the full result (`window.Fingerprint`, `window.Creep`, FP ID, fuzzy hash) to
+`POST /test/collect`, which stores it together with client IP and request headers.
+
+- Label runs with `?tag=<behavior>` (or the tag input, remembered per browser), e.g.
+  `/test/?tag=chrome-incognito-vpn`; **save again** re-posts the current result.
+- Storage: same cluster as invoices (`MONGODB_URI`) but a separate database — `FP_DB_NAME`,
+  default `fingerprints` — collection `fp_tests`. Document shape is documented in `app/fptest.py`.
+- Read back: set `FP_TEST_TOKEN` in `.env`, then `GET /test/results?token=…[&tag=…&limit=…]`
+  (summaries) and `GET /test/results/{id}?token=…` (full document). Without the token they 404.
+- Not captured: TLS/JA3/JA4 and HTTP/2 fingerprints — Caddy terminates TLS. Header order is as
+  received from Caddy, which may not match what the browser sent.
+- To update CreepJS: copy `docs/creep.js` and `docs/style.min.css` from a newer checkout into
+  `app/creepjs/` and update `VERSION`.
 
 ## Monobank Acquiring
 

@@ -4,11 +4,11 @@ import uuid
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app import invoices, monobank
+from app import fptest, invoices, monobank
 
 log = logging.getLogger("mcp-api.net")
 
@@ -33,6 +33,76 @@ TEST_CURRENCY = "USD"
 
 app = FastAPI(title="mcp-api.net")
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+ROBOTS_TXT = """User-agent: *
+Disallow: /test
+"""
+
+NOINDEX = {"X-Robots-Tag": "noindex, nofollow, noarchive"}
+CREEPJS_DIR = BASE_DIR / "creepjs"
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+async def robots_txt():
+    return ROBOTS_TXT
+
+
+# --- /test: browser-fingerprint test page (vendored CreepJS + collector) -----
+# Assets are served from /test/ because creep.js registers itself as a
+# service/shared worker via the page-relative path ./creep.js.
+
+
+@app.get("/test", include_in_schema=False)
+async def fp_test_redirect(request: Request):
+    query = f"?{request.url.query}" if request.url.query else ""
+    return RedirectResponse(url=f"/test/{query}", status_code=308, headers=NOINDEX)
+
+
+@app.get("/test/", include_in_schema=False)
+async def fp_test_page():
+    return FileResponse(CREEPJS_DIR / "index.html", media_type="text/html", headers={**NOINDEX, "Cache-Control": "no-store"})
+
+
+@app.post("/test/collect", include_in_schema=False)
+async def fp_test_collect(request: Request):
+    if not fptest.configured():
+        return JSONResponse({"detail": "storage not configured"}, status_code=503, headers=NOINDEX)
+    body = await request.body()
+    if len(body) > fptest.MAX_BODY_BYTES:
+        return JSONResponse({"detail": "payload too large"}, status_code=413, headers=NOINDEX)
+    try:
+        payload = json.loads(body)
+    except ValueError:
+        payload = None
+    if not isinstance(payload, dict) or not isinstance(payload.get("fingerprint"), dict):
+        return JSONResponse({"detail": "invalid payload"}, status_code=400, headers=NOINDEX)
+    headers = [(k.decode("latin-1"), v.decode("latin-1")) for k, v in request.headers.raw]
+    try:
+        doc_id = fptest.save(payload, ip=request.client.host if request.client else None, headers=headers)
+    except Exception:
+        log.exception("Failed to store fingerprint")
+        return JSONResponse({"detail": "storage error"}, status_code=502, headers=NOINDEX)
+    return JSONResponse({"id": doc_id}, headers=NOINDEX)
+
+
+@app.get("/test/results", include_in_schema=False)
+async def fp_test_results(request: Request, token: str | None = None, tag: str | None = None, limit: int = 50):
+    if not fptest.token_ok(token) or not fptest.configured():
+        raise HTTPException(status_code=404)
+    return JSONResponse(fptest.recent(limit=limit, tag=tag), headers=NOINDEX)
+
+
+@app.get("/test/results/{doc_id}", include_in_schema=False)
+async def fp_test_result(doc_id: str, token: str | None = None):
+    if not fptest.token_ok(token) or not fptest.configured():
+        raise HTTPException(status_code=404)
+    doc = fptest.get(doc_id)
+    if doc is None:
+        raise HTTPException(status_code=404)
+    return JSONResponse(doc, headers=NOINDEX)
+
+
+app.mount("/test", StaticFiles(directory=CREEPJS_DIR), name="creepjs")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
